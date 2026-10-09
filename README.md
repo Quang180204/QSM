@@ -8,24 +8,25 @@
 ## 📌 1. QUY ĐỊNH BẮT BUỘC VỀ QUẢN LÝ MÃ NGUỒN (GIT WORKFLOW)
 
 > [!IMPORTANT]
-> **QUY TẮC QUẢN LÝ MÃ NGUỒN TRÊN REPOSITORY:**
-> - Toàn bộ mã nguồn hoàn chỉnh hiện được lưu trữ chính thức trên nhánh **`main`**.
-> - Khi phát triển các tính năng tiếp theo, lập trình viên tạo nhánh làm việc từ `main` (ví dụ: `feature/backend`, `feature/qsm-rebrand`) và push code lên remote.
+> **QUY TẮC PHÂN NHÁNH VÀ PUSH CODE:**
+> - **Tuyệt đối KHÔNG push code trực tiếp lên nhánh `main`**.
+> - Trước khi thực hiện bất kỳ chỉnh sửa nào, lập trình viên **phải tạo nhánh mới có tên `LXH`** từ `main`.
+> - Toàn bộ commit và thay đổi phải được push lên nhánh `LXH`.
 
 ```bash
-# 1. Cập nhật nhánh main mới nhất từ remote
+# 1. Cập nhật nhánh main mới nhất
 git checkout main
 git pull origin main
 
-# 2. Tạo và chuyển sang nhánh làm việc tính năng mới
-git checkout -b feature/[ten-tinh-nang]
+# 2. Tạo và chuyển sang nhánh làm việc LXH
+git checkout -b LXH
 
 # 3. Thực hiện công việc, commit có ý nghĩa
 git add .
 git commit -m "feat(qsm): [tên tính năng/nhiệm vụ thực hiện]"
 
-# 4. Push code lên remote repository
-git push -u origin feature/[ten-tinh-nang]
+# 4. Push code lên nhánh LXH trên remote repository
+git push -u origin LXH
 ```
 
 ---
@@ -207,10 +208,10 @@ QSM/
 ```
 
 ### 4.2. Hướng dẫn di chuyển mã nguồn hiện tại vào `frontend/`:
-Để chuyển code hiện tại vào thư mục `frontend/` mà vẫn giữ nguyên lịch sử git:
+Để chuyển code hiện tại vào thư mục `frontend/` mà vẫn giữ nguyên lịch sử git trên nhánh `LXH`:
 ```bash
-# 1. Đảm bảo đang ở nhánh làm việc mới nhất
-git checkout main
+# 1. Đảm bảo đang ở nhánh LXH
+git checkout LXH
 
 # 2. Tạo thư mục frontend và backend
 mkdir frontend backend
@@ -454,7 +455,7 @@ npm run db:seed
 
 | Thứ tự | Hạng mục | Chi tiết thực hiện | Mức độ |
 | :---: | :--- | :--- | :---: |
-| **1** | **Git Setup** | Làm việc trên nhánh `main` (hoặc tạo feature branch từ `main`). | 🔴 Bắt buộc |
+| **1** | **Git Setup** | Làm việc trên nhánh `LXH`. Cam kết không push đè lên `main`. | 🔴 Bắt buộc |
 | **2** | **Cấu trúc Monorepo** | Tách mã nguồn rõ ràng thành 2 thư mục `frontend/` và `backend/`. | 🔴 Bắt buộc |
 | **3** | **Rebrand QSM** | Đổi toàn bộ tên, logo, typography từ `GSM` $\to$ `QSM`. | 🔴 Bắt buộc |
 | **4** | **Gỡ bỏ AI Chatbot** | Xóa sạch ChatAssistant, smart cards, icon chat, các state dư thừa. | 🔴 Bắt buộc |
