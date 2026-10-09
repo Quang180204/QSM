@@ -18,16 +18,31 @@ export const adminController = {
     const totalRevenue = completedTrips.reduce((sum, t) => sum + t.final_amount, 0);
     const activeRevenue = activeTrips.reduce((sum, t) => sum + t.final_amount, 0);
 
-    // Thống kê doanh thu 7 ngày gần nhất
-    const revenueByDay = [
-      { day: "T2", revenue: 1850000, trips: 14 },
-      { day: "T3", revenue: 2340000, trips: 18 },
-      { day: "T4", revenue: 2120000, trips: 16 },
-      { day: "T5", revenue: 2890000, trips: 22 },
-      { day: "T6", revenue: 3420000, trips: 27 },
-      { day: "T7", revenue: 4150000, trips: 31 },
-      { day: "CN", revenue: totalRevenue + 3200000, trips: completedTrips.length + 24 },
-    ];
+    // Thống kê doanh thu thực tế theo ngày trong tuần từ dữ liệu chuyến đi thật
+    const dayLabels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const orderedDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    const bucket: Record<string, { revenue: number; trips: number }> = {
+      T2: { revenue: 0, trips: 0 },
+      T3: { revenue: 0, trips: 0 },
+      T4: { revenue: 0, trips: 0 },
+      T5: { revenue: 0, trips: 0 },
+      T6: { revenue: 0, trips: 0 },
+      T7: { revenue: 0, trips: 0 },
+      CN: { revenue: 0, trips: 0 },
+    };
+
+    for (const t of completedTrips) {
+      const dt = new Date(t.completed_at || t.created_at);
+      const label = dayLabels[dt.getDay()] || "CN";
+      bucket[label].revenue += t.final_amount;
+      bucket[label].trips += 1;
+    }
+
+    const revenueByDay = orderedDays.map((day) => ({
+      day,
+      revenue: bucket[day].revenue,
+      trips: bucket[day].trips,
+    }));
 
     res.json({
       total_revenue: totalRevenue,
@@ -143,7 +158,7 @@ export const adminController = {
           : null;
         return {
           ...t,
-          user_name: user?.name || "Khách vãng lai",
+          user_name: user?.name || "Khách hàng",
           user_phone: user?.phone || "N/A",
           driver_name: driver?.full_name || "Chưa phân bổ",
           driver_phone: driver?.phone || "N/A",
@@ -179,4 +194,3 @@ export const adminController = {
     });
   },
 };
-

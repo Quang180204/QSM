@@ -23,6 +23,21 @@ function normalizeVehicleType(v?: string): VehicleType {
   return "car";
 }
 
+function generateUniqueTripCode(preferredCode?: string): string {
+  if (
+    preferredCode &&
+    /^QSM-\d+/.test(preferredCode) &&
+    !db.data.trips.some((t) => t.trip_code === preferredCode)
+  ) {
+    return preferredCode;
+  }
+  let code = generateTripCode();
+  while (db.data.trips.some((t) => t.trip_code === code)) {
+    code = generateTripCode();
+  }
+  return code;
+}
+
 function enrichTrip(trip: TripEntity) {
   const user = db.data.users.find((u) => u.id === trip.user_id);
   const driver = trip.driver_id
@@ -93,8 +108,14 @@ export const tripController = {
   },
 
   book(req: AuthenticatedRequest, res: Response): void {
-    const userId = req.user?.id || "usr-customer-01";
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ message: "Vui lòng đăng nhập để đặt chuyến xe." });
+      return;
+    }
+
     const {
+      trip_code,
       vehicle_type,
       pickup_address,
       pickup_coords,
@@ -105,6 +126,7 @@ export const tripController = {
       voucher_code,
       payment_method,
     } = req.body as {
+      trip_code?: string;
       vehicle_type?: string;
       pickup_address?: string;
       pickup_coords?: [number, number];
@@ -119,6 +141,20 @@ export const tripController = {
     if (!pickup_address || !dest_address) {
       res.status(400).json({ message: "Vui lòng chọn điểm đón và điểm đến hợp lệ." });
       return;
+    }
+
+    // Nếu tài khoản này đã có chuyến đi với cùng trip_code thì không tạo trùng lặp
+    if (trip_code) {
+      const existing = db.data.trips.find(
+        (t) => t.trip_code === trip_code && t.user_id === userId,
+      );
+      if (existing) {
+        res.status(200).json({
+          message: "Chuyến đi đã được ghi nhận.",
+          trip: enrichTrip(existing),
+        });
+        return;
+      }
     }
 
     const safePickupCoords: [number, number] = pickup_coords || [105.9445, 20.9905];
@@ -138,9 +174,10 @@ export const tripController = {
       if (veh) veh.status = "on_trip";
     }
 
+    const uniqueCode = generateUniqueTripCode(trip_code);
     const newTrip: TripEntity = {
       id: `trp-${crypto.randomUUID().slice(0, 8)}`,
-      trip_code: generateTripCode(),
+      trip_code: uniqueCode,
       user_id: userId,
       driver_id: assignedDriver?.id || "drv-01",
       vehicle_type: vType,
@@ -160,7 +197,6 @@ export const tripController = {
 
     db.data.trips.unshift(newTrip);
 
-    // Tạo tin nhắn chào mừng từ tài xế
     const welcomeMsg: TripMessageEntity = {
       id: `msg-${crypto.randomUUID().slice(0, 8)}`,
       trip_id: newTrip.id,
@@ -182,7 +218,11 @@ export const tripController = {
   },
 
   getActive(req: AuthenticatedRequest, res: Response): void {
-    const userId = req.user?.id || "usr-customer-01";
+    const userId = req.user?.id;
+    if (!userId) {
+      res.json({ trip: null });
+      return;
+    }
     const active = db.data.trips.find(
       (t) =>
         t.user_id === userId &&
@@ -192,7 +232,11 @@ export const tripController = {
   },
 
   getHistory(req: AuthenticatedRequest, res: Response): void {
-    const userId = req.user?.id || "usr-customer-01";
+    const userId = req.user?.id;
+    if (!userId) {
+      res.json({ total: 0, page: 1, limit: 20, trips: [] });
+      return;
+    }
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 20));
     const userTrips = db.data.trips
@@ -210,15 +254,21 @@ export const tripController = {
 
   updateStatus(req: AuthenticatedRequest, res: Response): void {
     const { id } = req.params;
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === "admin";
     const { status } = req.body as { status?: TripStatus };
-    const trip = db.data.trips.find((t) => t.id === id || t.trip_code === id);
+    const trip = db.data.trips.find(
+      (t) =>
+        (t.id === id || t.trip_code === id) &&
+        (isAdmin || t.user_id === userId),
+    );
 
     if (!trip) {
-      res.status(404).json({ message: "Không tìm thấy chuyến đi." });
+      res.status(404).json({ message: "Không tìm thấy chuyến đi của tài khoản này." });
       return;
     }
 
-    if (status) {
+    if (status && trip.status !== status) {
       trip.status = status;
       if (status === "COMPLETED") {
         trip.completed_at = new Date().toISOString();
@@ -242,8 +292,14 @@ export const tripController = {
 
   cancel(req: AuthenticatedRequest, res: Response): void {
     const { id } = req.params;
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === "admin";
     const { reason } = req.body as { reason?: string };
-    const trip = db.data.trips.find((t) => t.id === id || t.trip_code === id);
+    const trip = db.data.trips.find(
+      (t) =>
+        (t.id === id || t.trip_code === id) &&
+        (isAdmin || t.user_id === userId),
+    );
 
     if (!trip) {
       res.status(404).json({ message: "Không tìm thấy chuyến đi cần hủy." });
@@ -259,7 +315,7 @@ export const tripController = {
 
     trip.status = "CANCELLED";
     trip.cancel_reason = reason?.trim() || "Khách hàng thay đổi lịch trình";
-    trip.cancelled_by = req.user?.role === "admin" ? "admin" : "user";
+    trip.cancelled_by = isAdmin ? "admin" : "user";
     trip.final_amount = 0;
 
     if (trip.driver_id) {
@@ -283,12 +339,18 @@ export const tripController = {
 
   rate(req: AuthenticatedRequest, res: Response): void {
     const { id } = req.params;
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === "admin";
     const { rating_stars, feedback_note } = req.body as {
       rating_stars?: number;
       feedback_note?: string;
     };
 
-    const trip = db.data.trips.find((t) => t.id === id || t.trip_code === id);
+    const trip = db.data.trips.find(
+      (t) =>
+        (t.id === id || t.trip_code === id) &&
+        (isAdmin || t.user_id === userId),
+    );
     if (!trip) {
       res.status(404).json({ message: "Không tìm thấy chuyến đi để đánh giá." });
       return;
@@ -306,22 +368,37 @@ export const tripController = {
 
   getMessages(req: AuthenticatedRequest, res: Response): void {
     const { id } = req.params;
-    const trip = db.data.trips.find((t) => t.id === id || t.trip_code === id);
-    const tripId = trip ? trip.id : id;
-    const messages = db.data.messages.filter((m) => m.trip_id === tripId);
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === "admin";
+    const trip = db.data.trips.find(
+      (t) =>
+        (t.id === id || t.trip_code === id) &&
+        (isAdmin || t.user_id === userId),
+    );
+    if (!trip) {
+      res.json({ messages: [] });
+      return;
+    }
+    const messages = db.data.messages.filter((m) => m.trip_id === trip.id);
     res.json({ messages });
   },
 
   sendMessage(req: AuthenticatedRequest, res: Response): void {
     const { id } = req.params;
+    const userId = req.user?.id;
+    const isAdmin = req.user?.role === "admin";
     const { content } = req.body as { content?: string };
     if (!content?.trim()) {
       res.status(400).json({ message: "Nội dung tin nhắn không được để trống." });
       return;
     }
 
-    const trip = db.data.trips.find((t) => t.id === id || t.trip_code === id);
-    const tripId = trip ? trip.id : id;
+    const trip = db.data.trips.find(
+      (t) =>
+        (t.id === id || t.trip_code === id) &&
+        (isAdmin || t.user_id === userId),
+    );
+    const tripId = trip ? trip.id : `${userId || "usr"}-${id}`;
 
     const userMsg: TripMessageEntity = {
       id: `msg-${crypto.randomUUID().slice(0, 8)}`,
@@ -333,7 +410,6 @@ export const tripController = {
     };
     db.data.messages.push(userMsg);
 
-    // Tự động phản hồi từ tài xế để luồng nhắn tin 2 chiều hoàn chỉnh
     const driver = trip?.driver_id
       ? db.data.drivers.find((d) => d.id === trip.driver_id)
       : db.data.drivers[0];
@@ -358,4 +434,3 @@ export const tripController = {
     });
   },
 };
-

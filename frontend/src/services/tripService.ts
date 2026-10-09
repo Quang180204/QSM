@@ -57,6 +57,7 @@ export const tripApiService = {
   },
 
   async book(payload: {
+    trip_code?: string;
     vehicle_type: string;
     pickup_address: string;
     pickup_coords: [number, number];
@@ -71,6 +72,19 @@ export const tripApiService = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+
+  async getActive() {
+    return apiRequest<{ trip: BackendTripRecord | null }>("/trips/active");
+  },
+
+  async getHistory(page = 1, limit = 50) {
+    return apiRequest<{
+      total: number;
+      page: number;
+      limit: number;
+      trips: BackendTripRecord[];
+    }>(`/trips/history?page=${page}&limit=${limit}`);
   },
 
   async updateStatus(
@@ -124,4 +138,3 @@ export const tripApiService = {
     });
   },
 };
-

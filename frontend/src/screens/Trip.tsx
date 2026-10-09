@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
+import { useAuth } from "../state/AuthProvider";
 import { useTheme } from "../state/ThemeContext";
 import { isActiveTrip } from "../state/rideMachine";
 import {
@@ -69,6 +70,7 @@ export default function Trip() {
     rateCompletedTrip,
     notify,
   } = useRide();
+  const { user } = useAuth();
   const nav = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
@@ -163,8 +165,13 @@ export default function Trip() {
     return `${m}:${s}`;
   };
 
-  // Đặt xe trực tiếp & đồng bộ Backend API
+  // Đặt xe trực tiếp & đồng bộ Backend API theo đúng tài khoản đang đăng nhập
   const handleBookNow = () => {
+    if (!user) {
+      notify("Vui lòng đăng nhập tài khoản để đặt xe và lưu lịch sử chuyến đi.");
+      nav("/dang-nhap");
+      return;
+    }
     const localCode = "QSM-" + Math.floor(100000 + Math.random() * 900000);
     dispatch({ type: "SELECT_VEHICLE", vehicle: selectedVehicleId });
     dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
@@ -178,9 +185,10 @@ export default function Trip() {
     setRated(false);
     notify(`Đã gửi yêu cầu đặt ${v.name} (Mã: ${localCode})!`);
 
-    // Ghi nhận cuốc xe lên Backend
+    // Ghi nhận cuốc xe lên Backend gắn với đúng user.id và trip_code
     void tripApiService
       .book({
+        trip_code: localCode,
         vehicle_type:
           selectedVehicleId === "bike"
             ? "bike"
@@ -199,10 +207,12 @@ export default function Trip() {
             ? "cash"
             : paymentMethod === "Thẻ Visa/Mastercard"
               ? "card"
-              : "qsm_wallet",
+              : paymentMethod === "VNPay QR"
+                ? "vnpay"
+                : "qsm_wallet",
       })
       .catch(() => {
-        // Fallback giữ nguyên trạng thái đặt xe trên client
+        // Fallback giữ nguyên trạng thái đặt xe trên client của user hiện tại
       });
   };
 

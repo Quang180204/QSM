@@ -1,6 +1,7 @@
 import {
   apiRequest,
   clearStoredAuth,
+  getStoredToken,
   setStoredAuth,
   USER_STORAGE_KEY,
 } from "./api";
@@ -23,6 +24,8 @@ interface AuthResponse {
   token: string;
   user: AuthUser;
 }
+
+const SIGNED_OUT_FLAG = "qsm_explicit_signed_out_2026";
 
 const DEFAULT_CUSTOMER: AuthUser = {
   id: "usr-customer-01",
@@ -50,6 +53,9 @@ const DEFAULT_ADMIN: AuthUser = {
 
 export function getInitialStoredUser(): AuthUser | null {
   try {
+    if (localStorage.getItem(SIGNED_OUT_FLAG) === "true") {
+      return null;
+    }
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (raw) return JSON.parse(raw) as AuthUser;
   } catch {
@@ -59,7 +65,30 @@ export function getInitialStoredUser(): AuthUser | null {
 }
 
 export const authService = {
+  async ensureDefaultToken(): Promise<AuthUser | null> {
+    try {
+      if (localStorage.getItem(SIGNED_OUT_FLAG) === "true") {
+        return null;
+      }
+      const existingToken = getStoredToken();
+      if (existingToken && !existingToken.startsWith("qsm-")) {
+        const meUser = await this.me();
+        if (meUser) return meUser;
+      }
+      // Tự động lấy JWT token hợp lệ cho tài khoản mặc định nếu chưa đăng nhập
+      const res = await this.login("0988180204", "123456");
+      return res.user;
+    } catch {
+      return getInitialStoredUser();
+    }
+  },
+
   async login(identifier: string, password: string): Promise<AuthResponse> {
+    try {
+      localStorage.removeItem(SIGNED_OUT_FLAG);
+    } catch {
+      // ignore
+    }
     try {
       const res = await apiRequest<AuthResponse>("/auth/login", {
         method: "POST",
@@ -68,7 +97,6 @@ export const authService = {
       setStoredAuth(res.token, res.user);
       return res;
     } catch (err) {
-      // Fallback nội bộ nếu máy chủ chưa kịp phản hồi nhưng đúng thông tin tài khoản
       const clean = identifier.trim().toLowerCase();
       if ((clean === "admin" || clean === "admin@qsm.vn") && password === "admin") {
         const res: AuthResponse = {
@@ -101,6 +129,11 @@ export const authService = {
     email: string;
     password: string;
   }): Promise<AuthResponse> {
+    try {
+      localStorage.removeItem(SIGNED_OUT_FLAG);
+    } catch {
+      // ignore
+    }
     try {
       const res = await apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
@@ -172,6 +205,10 @@ export const authService = {
 
   logout(): void {
     clearStoredAuth();
+    try {
+      localStorage.setItem(SIGNED_OUT_FLAG, "true");
+    } catch {
+      // ignore
+    }
   },
 };
-

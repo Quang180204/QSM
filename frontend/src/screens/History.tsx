@@ -38,8 +38,15 @@ export default function History() {
         .includes(search.toLowerCase()),
   );
 
-  const completedCount = history.filter((t) => t.status === "completed").length;
+  const completedTrips = history.filter((t) => t.status === "completed");
+  const completedCount = completedTrips.length;
   const cancelledCount = history.filter((t) => t.status === "cancelled").length;
+  const totalDistanceKm = completedTrips
+    .reduce((sum, t) => sum + t.route.distance, 0)
+    .toFixed(1);
+  const co2SavedKg = completedTrips
+    .reduce((sum, t) => sum + t.route.distance * 0.24, 0)
+    .toFixed(2);
 
   return (
     <div className="standard-screen history-screen-pro">
@@ -52,7 +59,7 @@ export default function History() {
         <h1>Lịch sử chuyến đi</h1>
         <p>
           Theo dõi hóa đơn điện tử các chuyến xe thuần điện QSM và lượng phát thải
-          CO₂ đã cắt giảm.
+          CO₂ đã cắt giảm của riêng tài khoản bạn.
         </p>
       </header>
 
@@ -65,14 +72,14 @@ export default function History() {
         <div className="eco-summary-divider" />
         <div className="eco-summary-item">
           <span className="eco-stat-val eco-green">
-            -6.82 <small>kg</small>
+            -{co2SavedKg} <small>kg</small>
           </span>
           <span className="eco-stat-label">Giảm phát thải CO₂</span>
         </div>
         <div className="eco-summary-divider" />
         <div className="eco-summary-item">
           <span className="eco-stat-val">
-            57.0 <small>km</small>
+            {totalDistanceKm} <small>km</small>
           </span>
           <span className="eco-stat-label">Quãng đường thuần điện</span>
         </div>

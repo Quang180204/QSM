@@ -10,7 +10,6 @@ import {
   getInitialStoredUser,
   type AuthUser,
 } from "../services/authService";
-import { getStoredToken } from "../services/api";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -38,9 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => getInitialStoredUser());
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (!token) return;
-    void authService.me().then((profile) => {
+    void authService.ensureDefaultToken().then((profile) => {
       if (profile) setUser(profile);
     });
   }, []);
@@ -100,4 +97,3 @@ export function useAuth() {
   if (!ctx) throw new Error("AuthProvider missing");
   return ctx;
 }
-

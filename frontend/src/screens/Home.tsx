@@ -24,7 +24,7 @@ import VehicleShowcase3D from "../components/VehicleShowcase3D";
 import QsmLogo from "../components/QsmLogo";
 
 export default function Home() {
-  const { dispatch, notify } = useRide();
+  const { history, dispatch, notify } = useRide();
   const { user, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [destination, setDestination] = useState("");
@@ -33,6 +33,14 @@ export default function Home() {
   const firstName = user?.name
     ? user.name.trim().split(/\s+/).slice(-1)[0]
     : "Khách";
+
+  const completedTrips = history.filter((t) => t.status === "completed");
+  const co2SavedKg = (
+    completedTrips.reduce((sum, t) => sum + t.route.distance * 0.24, 0)
+  )
+    .toFixed(2)
+    .replace(".", ",");
+  const ecoProgressPct = Math.min(100, completedTrips.length * 20);
 
   const handleSelectQuickDestination = (placeName: string) => {
     setDestination(placeName);
@@ -195,12 +203,14 @@ export default function Home() {
             <span className="eyebrow">Mỗi chuyến đi, một điều tốt đẹp</span>
             <h3>Hành trình thuần điện QSM</h3>
             <p>
-              Bạn đã góp phần giảm <strong>42,8 kg CO₂</strong> cho đô thị
+              Tài khoản của bạn đã giảm <strong>{co2SavedKg} kg CO₂</strong> (
+              {completedTrips.length} chuyến)
             </p>
           </div>
           <div className="eco-progress">
             <span>
-              72<small>%</small>
+              {ecoProgressPct}
+              <small>%</small>
             </span>
             <i />
           </div>

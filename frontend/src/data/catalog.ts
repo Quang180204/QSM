@@ -184,6 +184,7 @@ export const driver = {
 
 export interface HistoryTrip {
   id: string;
+  userId?: string;
   group: string;
   time: string;
   route: Route;
@@ -196,56 +197,5 @@ export interface HistoryTrip {
   cancelReason?: string;
 }
 
-export const historySeed: HistoryTrip[] = [
-  {
-    id: "QSM-071026",
-    group: "Hôm nay",
-    time: "09:42",
-    route: defaultRoute,
-    vehicle: "vf5",
-    fare: 128000,
-    status: "completed",
-    paymentMethod: "Ví QSM Pay",
-    ratingStars: 5,
-    feedbackNote: "Lái xe êm ái, xe sạch không mùi",
-  },
-  {
-    id: "QSM-061026",
-    group: "Hôm qua",
-    time: "18:35",
-    route: {
-      ...defaultRoute,
-      pickup: defaultRoute.destination,
-      destination: defaultRoute.pickup,
-    },
-    vehicle: "bike",
-    fare: 72000,
-    status: "completed",
-    paymentMethod: "VNPay QR",
-    ratingStars: 5,
-    feedbackNote: "Đúng giờ, bác tài lịch sự",
-  },
-  {
-    id: "QSM-041026",
-    group: "Ngày trước đó",
-    time: "04/10 · 08:20",
-    route: popularRoutes[2],
-    vehicle: "limo",
-    fare: 185000,
-    status: "completed",
-    paymentMethod: "Thẻ Visa/Mastercard",
-    ratingStars: 5,
-    feedbackNote: "Khoang ghế cơ trưởng VF 9 cực kỳ êm ái",
-  },
-  {
-    id: "QSM-040730",
-    group: "Ngày trước đó",
-    time: "04/10 · 07:30",
-    route: defaultRoute,
-    vehicle: "vf5",
-    fare: 0,
-    status: "cancelled",
-    paymentMethod: "Tiền mặt",
-    cancelReason: "Thay đổi lịch trình cá nhân",
-  },
-];
+// Khởi tạo rỗng — lịch sử chuyến đi được lưu riêng biệt cho từng tài khoản người dùng
+export const historySeed: HistoryTrip[] = [];

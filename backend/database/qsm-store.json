@@ -6,7 +6,7 @@
       "name": "Quản Trị Viên QSM",
       "phone": "0900000001",
       "email": "admin@qsm.vn",
-      "password_hash": "$2b$10$vDGSxiBdXfnil7HRUgDUEe4dApTAjOmCdz4vWLzqcWqZYIevg6xR.",
+      "password_hash": "$2b$10$NvpL7mwdWkdVYUtpwxVoLusBMbbW6r2nak3SA83RLNzAGWPlDrL4O",
       "role": "admin",
       "membership_tier": "platinum",
       "avatar_url": "/images/driver-avatar.png",
@@ -19,7 +19,7 @@
       "name": "Nguyễn Khắc Quang",
       "phone": "0988180204",
       "email": "quang@qsm.vn",
-      "password_hash": "$2b$10$4Fv5fjbVspF/tuG04eNLeePuaJqU3xJrT1XbLsRtb.DgjOFdApajy",
+      "password_hash": "$2b$10$ZRh01ArZHtbpCcO/xNqBT.bmHxZcONSEnqEy7iLPciZxRPd3TCsLq",
       "role": "user",
       "membership_tier": "platinum",
       "is_active": true,
@@ -31,7 +31,7 @@
       "name": "Trần Minh Anh",
       "phone": "0912345678",
       "email": "minhanh@gmail.com",
-      "password_hash": "$2b$10$4Fv5fjbVspF/tuG04eNLeePuaJqU3xJrT1XbLsRtb.DgjOFdApajy",
+      "password_hash": "$2b$10$ZRh01ArZHtbpCcO/xNqBT.bmHxZcONSEnqEy7iLPciZxRPd3TCsLq",
       "role": "user",
       "membership_tier": "gold",
       "is_active": true,
@@ -43,7 +43,7 @@
       "name": "Lê Hoàng Long",
       "phone": "0977654321",
       "email": "hoanglong@vinuni.edu.vn",
-      "password_hash": "$2b$10$4Fv5fjbVspF/tuG04eNLeePuaJqU3xJrT1XbLsRtb.DgjOFdApajy",
+      "password_hash": "$2b$10$ZRh01ArZHtbpCcO/xNqBT.bmHxZcONSEnqEy7iLPciZxRPd3TCsLq",
       "role": "user",
       "membership_tier": "standard",
       "is_active": true,
@@ -55,10 +55,10 @@
       "name": "Phạm Phương Thảo",
       "phone": "0933889900",
       "email": "thaopham@outlook.com",
-      "password_hash": "$2b$10$4Fv5fjbVspF/tuG04eNLeePuaJqU3xJrT1XbLsRtb.DgjOFdApajy",
+      "password_hash": "$2b$10$ZRh01ArZHtbpCcO/xNqBT.bmHxZcONSEnqEy7iLPciZxRPd3TCsLq",
       "role": "user",
       "membership_tier": "gold",
-      "is_active": false,
+      "is_active": true,
       "created_at": "2026-10-03T16:45:00.000Z"
     }
   ],
@@ -69,7 +69,7 @@
       "service_name": "QSM Taxi",
       "license_plate": "29A-886.92",
       "type": "car",
-      "battery_percentage": 86,
+      "battery_percentage": 94,
       "status": "ready"
     },
     {
@@ -78,7 +78,7 @@
       "service_name": "QSM Bike",
       "license_plate": "29B1-668.19",
       "type": "bike",
-      "battery_percentage": 92,
+      "battery_percentage": 96,
       "status": "ready"
     },
     {
@@ -87,8 +87,8 @@
       "service_name": "QSM Luxury",
       "license_plate": "30K-999.88",
       "type": "luxury",
-      "battery_percentage": 78,
-      "status": "on_trip"
+      "battery_percentage": 91,
+      "status": "ready"
     },
     {
       "id": "veh-vf5-02",
@@ -96,8 +96,8 @@
       "service_name": "QSM Taxi",
       "license_plate": "30H-452.10",
       "type": "car",
-      "battery_percentage": 64,
-      "status": "on_trip"
+      "battery_percentage": 88,
+      "status": "ready"
     },
     {
       "id": "veh-bike-02",
@@ -105,8 +105,8 @@
       "service_name": "QSM Bike",
       "license_plate": "29E2-319.45",
       "type": "bike",
-      "battery_percentage": 38,
-      "status": "charging"
+      "battery_percentage": 85,
+      "status": "ready"
     },
     {
       "id": "veh-limo-02",
@@ -114,7 +114,7 @@
       "service_name": "QSM Luxury",
       "license_plate": "30K-518.68",
       "type": "luxury",
-      "battery_percentage": 95,
+      "battery_percentage": 98,
       "status": "ready"
     }
   ],
@@ -125,7 +125,7 @@
       "full_name": "Nguyễn Minh Nam",
       "phone": "0988668892",
       "rating": 4.95,
-      "total_trips": 1240,
+      "total_trips": 0,
       "current_lat": 20.9905,
       "current_lng": 105.9445,
       "status": "available"
@@ -136,7 +136,7 @@
       "full_name": "Trần Quốc Bảo",
       "phone": "0972112233",
       "rating": 4.92,
-      "total_trips": 985,
+      "total_trips": 0,
       "current_lat": 20.9962,
       "current_lng": 105.8685,
       "status": "available"
@@ -147,10 +147,10 @@
       "full_name": "Lê Hoàng Phúc",
       "phone": "0904556677",
       "rating": 4.98,
-      "total_trips": 1620,
+      "total_trips": 0,
       "current_lat": 21.0124,
       "current_lng": 105.8492,
-      "status": "busy"
+      "status": "available"
     },
     {
       "id": "drv-04",
@@ -158,10 +158,10 @@
       "full_name": "Phạm Đức Anh",
       "phone": "0918990011",
       "rating": 4.89,
-      "total_trips": 742,
+      "total_trips": 0,
       "current_lat": 21.0318,
       "current_lng": 105.8141,
-      "status": "busy"
+      "status": "available"
     },
     {
       "id": "drv-05",
@@ -169,10 +169,10 @@
       "full_name": "Vũ Tuấn Kiệt",
       "phone": "0966334455",
       "rating": 4.91,
-      "total_trips": 530,
+      "total_trips": 0,
       "current_lat": 21.0031,
       "current_lng": 105.8205,
-      "status": "offline"
+      "status": "available"
     },
     {
       "id": "drv-06",
@@ -180,183 +180,12 @@
       "full_name": "Đỗ Quang Huy",
       "phone": "0936778899",
       "rating": 4.97,
-      "total_trips": 1108,
+      "total_trips": 0,
       "current_lat": 21.2187,
       "current_lng": 105.8042,
       "status": "available"
     }
   ],
-  "trips": [
-    {
-      "id": "trp-01",
-      "trip_code": "QSM-071026",
-      "user_id": "usr-customer-01",
-      "driver_id": "drv-01",
-      "vehicle_type": "car",
-      "pickup_address": "VinUniversity, Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      "pickup_coords": [
-        105.9445,
-        20.9905
-      ],
-      "dest_address": "Times City, 458 Minh Khai, Hai Bà Trưng, Hà Nội",
-      "dest_coords": [
-        105.8685,
-        20.9962
-      ],
-      "distance_km": 11.5,
-      "duration_mins": 22,
-      "fare_amount": 153000,
-      "discount_amount": 25000,
-      "final_amount": 128000,
-      "payment_method": "qsm_wallet",
-      "status": "COMPLETED",
-      "rating_stars": 5,
-      "feedback_note": "Lái xe êm ái, xe sạch không mùi",
-      "created_at": "2026-10-09T09:20:00.000Z",
-      "completed_at": "2026-10-09T09:42:00.000Z"
-    },
-    {
-      "id": "trp-02",
-      "trip_code": "QSM-061026",
-      "user_id": "usr-customer-01",
-      "driver_id": "drv-02",
-      "vehicle_type": "bike",
-      "pickup_address": "Times City, 458 Minh Khai, Hai Bà Trưng, Hà Nội",
-      "pickup_coords": [
-        105.8685,
-        20.9962
-      ],
-      "dest_address": "VinUniversity, Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      "dest_coords": [
-        105.9445,
-        20.9905
-      ],
-      "distance_km": 11.5,
-      "duration_mins": 20,
-      "fare_amount": 97000,
-      "discount_amount": 25000,
-      "final_amount": 72000,
-      "payment_method": "vnpay",
-      "status": "COMPLETED",
-      "rating_stars": 5,
-      "feedback_note": "Đúng giờ, bác tài nhiệt tình",
-      "created_at": "2026-10-08T18:15:00.000Z",
-      "completed_at": "2026-10-08T18:35:00.000Z"
-    },
-    {
-      "id": "trp-03",
-      "trip_code": "QSM-041026",
-      "user_id": "usr-customer-01",
-      "driver_id": "drv-03",
-      "vehicle_type": "luxury",
-      "pickup_address": "VinUniversity, Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      "pickup_coords": [
-        105.9445,
-        20.9905
-      ],
-      "dest_address": "Sân bay Nội Bài, Sóc Sơn, Hà Nội",
-      "dest_coords": [
-        105.8042,
-        21.2187
-      ],
-      "distance_km": 34,
-      "duration_mins": 38,
-      "fare_amount": 210000,
-      "discount_amount": 25000,
-      "final_amount": 185000,
-      "payment_method": "card",
-      "status": "COMPLETED",
-      "rating_stars": 5,
-      "feedback_note": "Khoang thương gia VF 9 cực kỳ êm ái",
-      "created_at": "2026-10-04T07:40:00.000Z",
-      "completed_at": "2026-10-04T08:20:00.000Z"
-    },
-    {
-      "id": "trp-04",
-      "trip_code": "QSM-040730",
-      "user_id": "usr-customer-01",
-      "driver_id": "drv-01",
-      "vehicle_type": "car",
-      "pickup_address": "VinUniversity, Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      "pickup_coords": [
-        105.9445,
-        20.9905
-      ],
-      "dest_address": "Times City, 458 Minh Khai, Hai Bà Trưng, Hà Nội",
-      "dest_coords": [
-        105.8685,
-        20.9962
-      ],
-      "distance_km": 11.5,
-      "duration_mins": 22,
-      "fare_amount": 128000,
-      "discount_amount": 0,
-      "final_amount": 0,
-      "payment_method": "cash",
-      "status": "CANCELLED",
-      "cancel_reason": "Thay đổi lịch trình cá nhân",
-      "cancelled_by": "user",
-      "created_at": "2026-10-04T07:30:00.000Z"
-    },
-    {
-      "id": "trp-05",
-      "trip_code": "QSM-882410",
-      "user_id": "usr-customer-02",
-      "driver_id": "drv-03",
-      "vehicle_type": "luxury",
-      "pickup_address": "Highlands Bà Triệu, 127 Bà Triệu, Hai Bà Trưng, Hà Nội",
-      "pickup_coords": [
-        105.8492,
-        21.0124
-      ],
-      "dest_address": "Sân bay Nội Bài, Sóc Sơn, Hà Nội",
-      "dest_coords": [
-        105.8042,
-        21.2187
-      ],
-      "distance_km": 28.4,
-      "duration_mins": 35,
-      "fare_amount": 345000,
-      "discount_amount": 25000,
-      "final_amount": 320000,
-      "payment_method": "vnpay",
-      "status": "IN_TRANSIT",
-      "created_at": "2026-10-09T15:10:00.000Z"
-    },
-    {
-      "id": "trp-06",
-      "trip_code": "QSM-994120",
-      "user_id": "usr-customer-03",
-      "driver_id": "drv-04",
-      "vehicle_type": "car",
-      "pickup_address": "Vincom Metropolis, 29 Liễu Giai, Ba Đình, Hà Nội",
-      "pickup_coords": [
-        105.8141,
-        21.0318
-      ],
-      "dest_address": "Times City, 458 Minh Khai, Hai Bà Trưng, Hà Nội",
-      "dest_coords": [
-        105.8685,
-        20.9962
-      ],
-      "distance_km": 9.8,
-      "duration_mins": 21,
-      "fare_amount": 145000,
-      "discount_amount": 25000,
-      "final_amount": 120000,
-      "payment_method": "momo",
-      "status": "PICKING_UP",
-      "created_at": "2026-10-09T15:20:00.000Z"
-    }
-  ],
-  "messages": [
-    {
-      "id": "msg-01",
-      "trip_id": "trp-06",
-      "sender_role": "driver",
-      "sender_name": "Phạm Đức Anh",
-      "content": "Chào bạn, mình đang di chuyển đến sảnh chính Vincom Metropolis, khoảng 2 phút nữa tới nhé!",
-      "created_at": "2026-10-09T15:21:00.000Z"
-    }
-  ]
+  "trips": [],
+  "messages": []
 }

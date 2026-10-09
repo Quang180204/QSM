@@ -34,7 +34,7 @@ const items = [
 ];
 
 export default function Account() {
-  const { notify } = useRide();
+  const { history, notify } = useRide();
   const { user, isAuthenticated, isAdmin, updateProfile, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const nav = useNavigate();
@@ -45,6 +45,14 @@ export default function Account() {
   const [email, setEmail] = useState(user?.email || "quang@qsm.vn");
   const [newPassword, setNewPassword] = useState("");
   const [notifications, setNotifications] = useState(true);
+
+  const completedTrips = history.filter((t) => t.status === "completed");
+  const co2SavedNum = completedTrips.reduce(
+    (sum, t) => sum + t.route.distance * 0.24,
+    0,
+  );
+  const co2SavedStr = co2SavedNum.toFixed(2).replace(".", ",");
+  const treesEquivalent = (co2SavedNum / 20).toFixed(1).replace(".", ",");
 
   const openSection = (label: string) => {
     if (user) {
@@ -138,11 +146,11 @@ export default function Account() {
         <div>
           <span className="eyebrow">Đóng góp môi trường của bạn</span>
           <h3>
-            42,8 <small>kg CO₂ đã cắt giảm</small>
+            {co2SavedStr} <small>kg CO₂ đã cắt giảm</small>
           </h3>
           <p>
-            Tương đương trồng mới <strong>2,1 cây xanh</strong> trưởng thành cho đô
-            thị.
+            Đã hoàn thành <strong>{completedTrips.length} chuyến đi</strong> (tương
+            đương trồng mới <strong>{treesEquivalent} cây xanh</strong>).
           </p>
         </div>
         <Leaf size={43} strokeWidth={1} />
