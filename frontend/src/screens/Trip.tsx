@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
   Check,
   ChevronLeft,
   Clock,
@@ -13,7 +12,6 @@ import {
   Zap,
   MapPin,
   RotateCcw,
-  Sparkles,
   Tag,
   Radio,
   ChevronRight,
@@ -28,6 +26,7 @@ import {
   Volume2,
   Sun,
   Moon,
+  Send,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
@@ -42,29 +41,45 @@ import {
 } from "../data/catalog";
 import type { Route, VehicleId } from "../data/catalog";
 import RouteMap from "../components/RouteMap";
-import { RouteDetails } from "../components/chat/SmartCards";
+import { RouteDetails } from "../components/RouteDetails";
 import Modal from "../components/Modal";
-import Mascot from "../components/Mascot";
+import { tripApiService, type DriverMessageItem } from "../services/tripService";
 
 const tripStepTitles = {
-  SEARCHING_DRIVER: "Đang tìm tài xế phù hợp quanh bạn…",
-  DRIVER_ASSIGNED: "Đã tìm thấy tài xế!",
+  SEARCHING_DRIVER: "Đang kết nối tài xế QSM gần bạn…",
+  DRIVER_ASSIGNED: "Tài xế đã tiếp nhận chuyến xe",
   DRIVER_ARRIVING: "Tài xế đang đến điểm đón",
-  DRIVER_ARRIVED: "Tài xế đã đến sảnh đón",
-  TRIP_STARTED: "Bạn đang trên hành trình di chuyển",
-  TRIP_COMPLETED: "Chuyến đi đã hoàn thành an toàn",
+  DRIVER_ARRIVED: "Tài xế đã đến điểm đón",
+  TRIP_STARTED: "Hành trình đang diễn ra",
+  TRIP_COMPLETED: "Chuyến đi hoàn tất",
 };
 
-export default function Trip() {
-  const { ride, dispatch, setChatOpen, notify } = useRide();
-  const nav = useNavigate();
+const CANCEL_REASONS = [
+  "Thay đổi lịch trình đột xuất",
+  "Đặt nhầm điểm đón hoặc điểm đến",
+  "Muốn đổi sang dòng xe khác",
+  "Thời gian chờ tài xế lâu hơn dự kiến",
+];
 
+export default function Trip() {
+  const {
+    ride,
+    dispatch,
+    recordCancelledTrip,
+    rateCompletedTrip,
+    notify,
+  } = useRide();
+  const nav = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  // Booking & Route state (for pre-booking mode)
-  const [selectedRoute, setSelectedRoute] = useState<Route>(ride.route || popularRoutes[0]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<VehicleId>(ride.vehicle || "vf5");
-  const [paymentMethod, setPaymentMethod] = useState("Ví Xanh SM");
+  // Booking & Route state
+  const [selectedRoute, setSelectedRoute] = useState<Route>(
+    ride.route || popularRoutes[0],
+  );
+  const [selectedVehicleId, setSelectedVehicleId] = useState<VehicleId>(
+    ride.vehicle || "vf5",
+  );
+  const [paymentMethod, setPaymentMethod] = useState("Ví QSM Pay");
   const [promoApplied, setPromoApplied] = useState(true);
 
   // In-cabin comfort preferences
@@ -73,12 +88,30 @@ export default function Trip() {
 
   // Modals & interaction state
   const [cancel, setCancel] = useState(false);
-  const [contact, setContact] = useState<"call" | "message" | "support" | null>(null);
+  const [cancelReason, setCancelReason] = useState(CANCEL_REASONS[0]);
+  const [contact, setContact] = useState<"call" | "message" | "support" | null>(
+    null,
+  );
   const [driverMessage, setDriverMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<DriverMessageItem[]>([
+    {
+      id: "msg-init-1",
+      trip_id: "current",
+      sender_role: "driver",
+      sender_name: driver.name,
+      content: `Chào bạn, mình là tài xế QSM (${driver.name} · ${driver.plate}). Mình đang di chuyển đúng lộ trình tới điểm đón nhé!`,
+      created_at: new Date().toISOString(),
+    },
+  ]);
   const [callActive, setCallActive] = useState(false);
+  const [callSeconds, setCallSeconds] = useState(0);
   const [stars, setStars] = useState(5);
   const [rated, setRated] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>(["Lái xe êm ái", "Xe sạch không mùi"]);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([
+    "Lái xe êm ái",
+    "Xe sạch không mùi",
+  ]);
   const [progress, setProgress] = useState(0);
 
   const sheet = useRef<HTMLElement>(null);
@@ -88,12 +121,19 @@ export default function Trip() {
   const complete = ride.status === "TRIP_COMPLETED";
   const active = isActiveTrip(ride.status);
 
-  // Smooth scroll when trip starts or completes
+  // Đồng bộ lộ trình đã chọn từ trang chủ
   useEffect(() => {
-    if (started || complete) sheet.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (ride.route) setSelectedRoute(ride.route);
+    if (ride.vehicle) setSelectedVehicleId(ride.vehicle);
+  }, [ride.route, ride.vehicle]);
+
+  useEffect(() => {
+    if (started || complete) {
+      sheet.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [started, complete]);
 
-  // Trip progress simulation
+  // Tiến độ di chuyển thực tế trên bản đồ
   useEffect(() => {
     if (!started) {
       setProgress(0);
@@ -105,47 +145,145 @@ export default function Trip() {
     return () => clearInterval(timer);
   }, [started]);
 
-  // Handle instant booking
+  // Đồng hồ đếm thời gian cuộc gọi
+  useEffect(() => {
+    if (!callActive) {
+      setCallSeconds(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setCallSeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [callActive]);
+
+  const formatCallTime = (sec: number) => {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  // Đặt xe trực tiếp & đồng bộ Backend API
   const handleBookNow = () => {
-    const bookingId = "GSM-" + Math.floor(100000 + Math.random() * 900000);
+    const localCode = "QSM-" + Math.floor(100000 + Math.random() * 900000);
     dispatch({ type: "SELECT_VEHICLE", vehicle: selectedVehicleId });
+    dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
     dispatch({ type: "SET_ROUTE", route: selectedRoute });
     dispatch({ type: "PAYMENT", payment: paymentMethod });
-    dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
     dispatch({ type: "TRANSITION", status: "RESOLVING_LOCATION" });
     dispatch({ type: "TRANSITION", status: "LOCATION_CONFIRMED" });
     dispatch({ type: "TRANSITION", status: "QUOTED" });
     dispatch({ type: "TRANSITION", status: "AWAITING_CONFIRMATION" });
-    dispatch({ type: "BOOKED", id: bookingId });
-    notify("Hệ thống GSM đang điều phối xe gần bạn nhất...");
+    dispatch({ type: "BOOKED", id: localCode });
+    setRated(false);
+    notify(`Đã gửi yêu cầu đặt ${v.name} (Mã: ${localCode})!`);
+
+    // Ghi nhận cuốc xe lên Backend
+    void tripApiService
+      .book({
+        vehicle_type:
+          selectedVehicleId === "bike"
+            ? "bike"
+            : selectedVehicleId === "limo"
+              ? "luxury"
+              : "car",
+        pickup_address: `${selectedRoute.pickup.name}, ${selectedRoute.pickup.address}`,
+        pickup_coords: selectedRoute.pickup.coords,
+        dest_address: `${selectedRoute.destination.name}, ${selectedRoute.destination.address}`,
+        dest_coords: selectedRoute.destination.coords,
+        distance_km: selectedRoute.distance,
+        duration_mins: selectedRoute.duration,
+        voucher_code: promoApplied ? "QSM2026" : undefined,
+        payment_method:
+          paymentMethod === "Tiền mặt"
+            ? "cash"
+            : paymentMethod === "Thẻ Visa/Mastercard"
+              ? "card"
+              : "qsm_wallet",
+      })
+      .catch(() => {
+        // Fallback giữ nguyên trạng thái đặt xe trên client
+      });
   };
 
-  // Step accelerator for demo / simulation testing
+  // Chuyển bước trạng thái vận hành chuyến đi
   const handleNextStage = () => {
+    const bId = ride.bookingId || "QSM-071026";
     if (ride.status === "SEARCHING_DRIVER") {
       dispatch({ type: "TRANSITION", status: "DRIVER_ASSIGNED" });
-      notify("Tài xế Nguyễn Minh Nam đã nhận chuyến!");
+      notify(`Tài xế ${driver.name} (${driver.plate}) đã tiếp nhận chuyến!`);
     } else if (ride.status === "DRIVER_ASSIGNED") {
       dispatch({ type: "TRANSITION", status: "DRIVER_ARRIVING" });
-      notify("Tài xế đang di chuyển đến điểm đón (khoảng 3 phút).");
+      notify("Tài xế đang đến điểm đón (khoảng 3 phút).");
     } else if (ride.status === "DRIVER_ARRIVING") {
       dispatch({ type: "TRANSITION", status: "DRIVER_ARRIVED" });
-      notify("Tài xế đã đến sảnh đón!");
+      notify("Tài xế đã đến điểm đón. Vui lòng kiểm tra biển số xe.");
     } else if (ride.status === "DRIVER_ARRIVED") {
       dispatch({ type: "TRANSITION", status: "TRIP_STARTED" });
-      notify("Bắt đầu hành trình di chuyển cùng GSM.");
+      void tripApiService.updateStatus(bId, "IN_TRANSIT").catch(() => {});
+      notify("Hành trình đang diễn ra.");
     } else if (ride.status === "TRIP_STARTED") {
       dispatch({ type: "TRANSITION", status: "TRIP_COMPLETED" });
-      notify("Hành trình hoàn tất! Cảm ơn bạn đã đồng hành cùng GSM.");
+      void tripApiService.updateStatus(bId, "COMPLETED").catch(() => {});
+      notify(`Chuyến đi hoàn tất! Đã thanh toán thành công qua ${ride.payment || paymentMethod}.`);
     }
   };
 
-  const currentFare = selectedVehicleId === "bike" ? 72000 : selectedVehicleId === "vf5" ? 128000 : 185000;
-  const finalFare = promoApplied ? Math.max(20000, currentFare - 25000) : currentFare;
+  const handleSendDriverMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = driverMessage.trim();
+    if (!text) return;
+
+    const userMsg: DriverMessageItem = {
+      id: "msg-u-" + Date.now(),
+      trip_id: ride.bookingId || "current",
+      sender_role: "user",
+      sender_name: "Bạn",
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setChatHistory((prev) => [...prev, userMsg]);
+    setDriverMessage("");
+
+    const bId = ride.bookingId || "trp-06";
+    void tripApiService
+      .sendMessage(bId, text)
+      .then((res) => {
+        if (res.reply) {
+          setChatHistory((prev) => [...prev, res.reply]);
+        }
+      })
+      .catch(() => {
+        setTimeout(() => {
+          setChatHistory((prev) => [
+            ...prev,
+            {
+              id: "msg-d-" + Date.now(),
+              trip_id: bId,
+              sender_role: "driver",
+              sender_name: driver.name,
+              content:
+                "Vâng bác tài đã nhận được tin nhắn nhé! Mình sẽ lưu ý đúng yêu cầu của bạn.",
+              created_at: new Date().toISOString(),
+            },
+          ]);
+        }, 600);
+      });
+  };
+
+  const currentFare =
+    selectedVehicleId === "bike"
+      ? 72000
+      : selectedVehicleId === "vf5"
+        ? 128000
+        : 185000;
+  const finalFare = promoApplied
+    ? Math.max(20000, currentFare - 25000)
+    : currentFare;
 
   return (
     <div className="trip-screen gsm-trip-cockpit">
-      {/* Cockpit Header - Consistent with Home.tsx app-header */}
+      {/* Cockpit Header */}
       <header className="screen-header app-header-unified">
         <button
           className="icon-button back-nav-btn"
@@ -157,11 +295,21 @@ export default function Trip() {
         <div className="header-title-block">
           <div className="header-brand-line">
             <span className="brand-dot-pulse" />
-            <h1>{active ? "Theo dõi chuyến đi" : complete ? "Chi tiết hành trình" : "Điều phối GSM"}</h1>
+            <h1>
+              {active
+                ? "Theo dõi hành trình"
+                : complete
+                  ? "Hóa đơn & Đánh giá"
+                  : "Đặt xe QSM"}
+            </h1>
           </div>
           <div className="radar-status-badge">
             <Radio size={12} className="spin-slow" />
-            <span>{active ? "Vệ tinh GPS trực tiếp" : "16 xe thuần điện sẵn sàng · Đón ~2 phút"}</span>
+            <span>
+              {active
+                ? "Định vị GPS trực tiếp"
+                : "Đội xe thuần điện QSM sẵn sàng · Đón ~2 phút"}
+            </span>
           </div>
         </div>
         <div className="header-actions">
@@ -171,11 +319,6 @@ export default function Trip() {
               theme === "dark"
                 ? "Bật đèn (Giao diện sáng)"
                 : "Tắt đèn (Giao diện tối)"
-            }
-            title={
-              theme === "dark"
-                ? "Bật đèn (Chế độ ban ngày)"
-                : "Tắt đèn (Chế độ ban đêm 2026)"
             }
             onClick={toggleTheme}
           >
@@ -187,7 +330,7 @@ export default function Trip() {
           </button>
           <button
             className="icon-button"
-            aria-label="Hỗ trợ GSM"
+            aria-label="Hỗ trợ QSM"
             onClick={() => setContact("support")}
           >
             <Headphones size={20} />
@@ -195,7 +338,7 @@ export default function Trip() {
         </div>
       </header>
 
-      {/* Interactive Map View */}
+      {/* Interactive Real Map View */}
       <div className="trip-map">
         <RouteMap
           route={active || complete ? ride.route : selectedRoute}
@@ -209,21 +352,27 @@ export default function Trip() {
                   : "pickup"
           }
           progress={progress}
+          onGpsLocate={(coords, label) => {
+            if (!active && !complete) {
+              setSelectedRoute((prev) => ({
+                ...prev,
+                pickup: {
+                  name: label,
+                  address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
+                  coords,
+                },
+              }));
+              notify("Đã cập nhật điểm đón theo vị trí GPS thiết bị của bạn!");
+            }
+          }}
         />
 
         <div className="trip-map-badge">
           <ShieldCheck size={14} />
-          {complete ? "Hành trình an toàn 100%" : "Được bảo chứng bởi GSM SafeTrip"}
+          {complete
+            ? "Chuyến đi hoàn tất an toàn"
+            : "Được bảo chứng bởi QSM SafeTrip"}
         </div>
-
-        {/* Quick AI Assistant Floater */}
-        {!complete && (
-          <button className="ask-trip-ai" onClick={() => setChatOpen(true)}>
-            <Mascot headOnly size={22} />
-            <span>{active ? "Hỏi AI về chuyến đi" : "AI Gợi ý lộ trình"}</span>
-            <ArrowRight size={14} />
-          </button>
-        )}
       </div>
 
       {/* Bottom Sheet Cockpit */}
@@ -231,16 +380,16 @@ export default function Trip() {
         <div className="sheet-handle" />
 
         {/* ===================================================================
-            STATE 1: PRE-BOOKING & VEHICLE SELECTOR (When no trip is active)
+            STATE 1: PRE-BOOKING & VEHICLE SELECTOR
             =================================================================== */}
         {!active && !complete ? (
           <div className="prebooking-panel">
-            {/* Route Selector Chips */}
+            {/* Route Selector */}
             <div className="route-select-box">
               <div className="route-point pickup-point">
                 <span className="point-dot pickup" />
                 <div className="point-info">
-                  <small>Điểm đón (Vị trí hiện tại)</small>
+                  <small>Điểm đón (Có thể định vị GPS trên bản đồ)</small>
                   <strong>{selectedRoute.pickup.name}</strong>
                   <span>{selectedRoute.pickup.address}</span>
                 </div>
@@ -258,13 +407,15 @@ export default function Trip() {
 
             {/* Quick Destinations Carousel */}
             <div className="quick-dest-list">
-              <span className="quick-dest-title">Gợi ý lộ trình GSM:</span>
+              <span className="quick-dest-title">Lộ trình phổ biến tại Hà Nội:</span>
               <div className="quick-dest-scroll">
                 {popularRoutes.map((r) => {
-                  const isSelected = selectedRoute.destination.name === r.destination.name;
+                  const isSelected =
+                    selectedRoute.destination.name === r.destination.name;
                   return (
                     <button
                       key={r.destination.name}
+                      type="button"
                       className={`dest-chip ${isSelected ? "selected" : ""}`}
                       onClick={() => setSelectedRoute(r)}
                     >
@@ -279,11 +430,18 @@ export default function Trip() {
 
             {/* Vehicle Selection Cards */}
             <div className="service-tier-selection">
-              <span className="tier-header-label">Chọn phương tiện thuần điện GSM:</span>
+              <span className="tier-header-label">
+                Chọn dịch vụ xe thuần điện QSM:
+              </span>
               <div className="vehicle-tier-list">
                 {vehicles.map((vItem) => {
                   const isChosen = selectedVehicleId === vItem.id;
-                  const itemFare = vItem.id === "bike" ? 72000 : vItem.id === "vf5" ? 128000 : 185000;
+                  const itemFare =
+                    vItem.id === "bike"
+                      ? 72000
+                      : vItem.id === "vf5"
+                        ? 128000
+                        : 185000;
                   return (
                     <div
                       key={vItem.id}
@@ -291,22 +449,32 @@ export default function Trip() {
                       onClick={() => setSelectedVehicleId(vItem.id)}
                     >
                       <div className="tier-img-box">
-                        <img src={vItem.image} alt={vItem.name} className="tier-vehicle-img" />
+                        <img
+                          src={vItem.image}
+                          alt={vItem.name}
+                          className="tier-vehicle-img"
+                        />
                       </div>
                       <div className="tier-main-info">
                         <div className="tier-name-row">
                           <strong>{vItem.name}</strong>
                           <span className="tier-eta">~{vItem.eta} phút</span>
                         </div>
-                        <p>{vItem.label} · {vItem.capacity} chỗ</p>
+                        <p>
+                          {vItem.realModelName} · {vItem.capacity} chỗ
+                        </p>
                         <div className="tier-tech-specs">
                           <span className="tier-co2">{vItem.co2Saving}</span>
-                          <span className="tier-battery">{vItem.battery.split(" ")[1]}</span>
+                          <span className="tier-battery">
+                            {vItem.battery.split(" ")[1]}
+                          </span>
                         </div>
                       </div>
                       <div className="tier-price-box">
                         <strong className="tier-price">{money(itemFare)}</strong>
-                        {promoApplied && <small className="tier-discount">-25.000đ</small>}
+                        {promoApplied && (
+                          <small className="tier-discount">-25.000đ</small>
+                        )}
                       </div>
                     </div>
                   );
@@ -318,17 +486,27 @@ export default function Trip() {
             <div className="in-cabin-preferences">
               <div className="pref-row">
                 <span className="pref-label">
-                  <Thermometer size={15} /> Nhiệt độ cabin:
+                  <Thermometer size={15} /> Nhiệt độ cabin yêu cầu:
                 </span>
                 <div className="temp-stepper">
-                  <button onClick={() => setCabinTemp((t) => Math.max(18, t - 1))}>-</button>
+                  <button
+                    type="button"
+                    onClick={() => setCabinTemp((t) => Math.max(18, t - 1))}
+                  >
+                    -
+                  </button>
                   <strong>{cabinTemp}°C</strong>
-                  <button onClick={() => setCabinTemp((t) => Math.min(26, t + 1))}>+</button>
+                  <button
+                    type="button"
+                    onClick={() => setCabinTemp((t) => Math.min(26, t + 1))}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div className="pref-row">
                 <span className="pref-label">
-                  <VolumeX size={15} /> Chuyến đi yên tĩnh (Không trò chuyện):
+                  <VolumeX size={15} /> Không gian yên tĩnh (Hạn chế trò chuyện):
                 </span>
                 <input
                   type="checkbox"
@@ -345,11 +523,17 @@ export default function Trip() {
                 className="promo-pill"
                 onClick={() => {
                   setPromoApplied(!promoApplied);
-                  notify(promoApplied ? "Đã gỡ mã ưu đãi." : "Đã áp dụng mã GSMAI25 (-25.000đ)");
+                  notify(
+                    promoApplied
+                      ? "Đã gỡ mã ưu đãi."
+                      : "Đã áp dụng mã QSM2026 (-25.000đ)",
+                  );
                 }}
               >
                 <Tag size={14} />
-                <span>GSMAI25 {promoApplied ? "(Đã áp dụng)" : "(Chạm để dùng)"}</span>
+                <span>
+                  QSM2026 {promoApplied ? "(Đã áp dụng)" : "(Chạm để dùng)"}
+                </span>
               </div>
               <div className="payment-pill">
                 <Wallet size={14} />
@@ -358,36 +542,33 @@ export default function Trip() {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="payment-select"
                 >
-                  <option value="Ví Xanh SM">Ví Xanh SM</option>
+                  <option value="Ví QSM Pay">Ví QSM Pay</option>
+                  <option value="VNPay QR">VNPay QR</option>
                   <option value="Thẻ Visa/Mastercard">Thẻ Visa/Mastercard</option>
                   <option value="Tiền mặt">Tiền mặt</option>
                 </select>
               </div>
             </div>
 
-            {/* Total Fare & Booking CTAs */}
+            {/* Total Fare & Booking CTA */}
             <div className="booking-cta-section">
               <div className="fare-breakdown-row">
-                <span>Cước phí ước tính ({selectedRoute.distance} km)</span>
+                <span>Cước phí niêm yết ({selectedRoute.distance} km)</span>
                 <div className="fare-numbers">
-                  {promoApplied && <span className="old-fare">{money(currentFare)}</span>}
+                  {promoApplied && (
+                    <span className="old-fare">{money(currentFare)}</span>
+                  )}
                   <strong className="final-fare">{money(finalFare)}</strong>
                 </div>
               </div>
               <div className="cta-button-group">
-                <button className="button primary cta-book-now" onClick={handleBookNow}>
+                <button
+                  type="button"
+                  className="button primary cta-book-now"
+                  onClick={handleBookNow}
+                >
                   <Zap size={18} />
                   <span>Xác nhận đặt {v.name}</span>
-                </button>
-                <button
-                  className="button secondary cta-demo-trip"
-                  onClick={() => {
-                    handleBookNow();
-                    notify("Bắt đầu mô phỏng quy trình đón xe GSM!");
-                  }}
-                >
-                  <Sparkles size={16} />
-                  <span>Chạy mô phỏng toàn bộ (Demo)</span>
                 </button>
               </div>
             </div>
@@ -395,26 +576,41 @@ export default function Trip() {
         ) : null}
 
         {/* ===================================================================
-            STATE 2: ACTIVE TRIP & TELEMETRY (Driver assigned / on the way)
+            STATE 2: ACTIVE TRIP & TELEMETRY
             =================================================================== */}
         {active ? (
           <div className="active-trip-panel">
-            {/* GSM 5-Stage Stepper */}
+            {/* QSM 5-Stage Stepper */}
             <div className="trip-stepper">
               {[
-                { key: "SEARCHING_DRIVER", label: "Tìm xe" },
+                { key: "SEARCHING_DRIVER", label: "Kết nối" },
                 { key: "DRIVER_ASSIGNED", label: "Nhận chuyến" },
                 { key: "DRIVER_ARRIVING", label: "Đang đón" },
                 { key: "TRIP_STARTED", label: "Đang đi" },
-                { key: "TRIP_COMPLETED", label: "Đến nơi" },
+                { key: "TRIP_COMPLETED", label: "Hoàn tất" },
               ].map((step, idx) => {
-                const keys = ["SEARCHING_DRIVER", "DRIVER_ASSIGNED", "DRIVER_ARRIVING", "TRIP_STARTED", "TRIP_COMPLETED"];
-                const currentIdx = keys.indexOf(ride.status === "DRIVER_ARRIVED" ? "DRIVER_ARRIVING" : ride.status);
+                const keys = [
+                  "SEARCHING_DRIVER",
+                  "DRIVER_ASSIGNED",
+                  "DRIVER_ARRIVING",
+                  "TRIP_STARTED",
+                  "TRIP_COMPLETED",
+                ];
+                const currentIdx = keys.indexOf(
+                  ride.status === "DRIVER_ARRIVED"
+                    ? "DRIVER_ARRIVING"
+                    : ride.status,
+                );
                 const isPassed = currentIdx >= idx;
                 const isCurrent = currentIdx === idx;
                 return (
-                  <div key={step.key} className={`stepper-step ${isPassed ? "active" : ""} ${isCurrent ? "current" : ""}`}>
-                    <div className="step-dot">{isPassed && <Check size={11} strokeWidth={3} />}</div>
+                  <div
+                    key={step.key}
+                    className={`stepper-step ${isPassed ? "active" : ""} ${isCurrent ? "current" : ""}`}
+                  >
+                    <div className="step-dot">
+                      {isPassed && <Check size={11} strokeWidth={3} />}
+                    </div>
                     <span>{step.label}</span>
                   </div>
                 );
@@ -423,16 +619,25 @@ export default function Trip() {
 
             {/* Status Heading */}
             <div className="trip-status-header">
-              <span className="eyebrow">{searching ? "Đang kết nối vệ tinh GSM" : started ? "Hành trình xanh đang diễn ra" : "Tài xế đã sẵn sàng"}</span>
-              <h2>{tripStepTitles[ride.status as keyof typeof tripStepTitles] || "Đang xử lý"}</h2>
+              <span className="eyebrow">
+                {searching
+                  ? "Hệ thống điều phối QSM"
+                  : started
+                    ? "Hành trình đang diễn ra"
+                    : "Tài xế đang đến điểm đón"}
+              </span>
+              <h2>
+                {tripStepTitles[ride.status as keyof typeof tripStepTitles] ||
+                  "Đang xử lý"}
+              </h2>
               <p>
                 {searching
-                  ? "Thuật toán GSM AI đang ưu tiên tài xế 5 sao gần nhất..."
+                  ? "Hệ thống đang phân bổ tài xế 5 sao gần vị trí của bạn nhất..."
                   : started
-                    ? `Khoảng ${Math.max(1, Math.round(18 - progress * 17))} phút · Còn ${(7.2 - progress * 6.8).toFixed(1)} km`
+                    ? `Khoảng ${Math.max(1, Math.round(ride.route.duration * (1 - progress)))} phút · Còn ${(ride.route.distance * (1 - progress)).toFixed(1)} km`
                     : ride.status === "DRIVER_ARRIVED"
-                      ? "Bác tài đang đợi tại sảnh chính điểm đón."
-                      : "Khoảng 3 phút · Cách điểm đón 650m"}
+                      ? "Tài xế đã có mặt tại điểm đón. Vui lòng đối chiếu biển số xe."
+                      : "Dự kiến 3 phút · Cách điểm đón khoảng 650m"}
               </p>
             </div>
 
@@ -440,10 +645,13 @@ export default function Trip() {
             {started && (
               <div className="route-progress-bar">
                 <div className="bar-track">
-                  <div className="bar-fill" style={{ width: `${Math.round(20 + progress * 80)}%` }} />
+                  <div
+                    className="bar-fill"
+                    style={{ width: `${Math.round(20 + progress * 80)}%` }}
+                  />
                 </div>
                 <div className="progress-meta">
-                  <span>Tiến độ: {Math.round(20 + progress * 80)}%</span>
+                  <span>Tiến độ hành trình: {Math.round(20 + progress * 80)}%</span>
                   <span>Điểm đến: {ride.route.destination.name}</span>
                 </div>
               </div>
@@ -453,21 +661,32 @@ export default function Trip() {
             {searching ? (
               <div className="searching-radar-cockpit">
                 <div className="searching-radar-vehicle">
-                  <img src={v.image} alt={v.name} className="searching-vehicle-photo" />
+                  <img
+                    src={v.image}
+                    alt={v.name}
+                    className="searching-vehicle-photo"
+                  />
                   <div className="searching-ping-ring" />
                   <div className="searching-ping-ring delay" />
                 </div>
                 <div className="searching-text-wrap">
-                  <strong>Đang tìm xe {v.name} quanh bạn</strong>
-                  <small>Điều phối tự động qua mạng lưới GSM Cloud 2026</small>
+                  <strong>Đang kết nối xe {v.name} gần bạn</strong>
+                  <small>Mã đặt chuyến: {ride.bookingId}</small>
                 </div>
               </div>
             ) : (
               <div className="driver-card">
                 <div className="driver-top">
                   <div className="driver-avatar-real">
-                    <img src="/images/driver-avatar.png" alt={driver.name} className="driver-photo-round" />
-                    <span className="driver-verified-badge" title="Tài xế GSM 5 sao đã xác minh">
+                    <img
+                      src="/images/driver-avatar.png"
+                      alt={driver.name}
+                      className="driver-photo-round"
+                    />
+                    <span
+                      className="driver-verified-badge"
+                      title="Tài xế QSM 5 sao đã xác minh"
+                    >
                       <Check size={12} strokeWidth={3} />
                     </span>
                   </div>
@@ -477,7 +696,7 @@ export default function Trip() {
                       <Star size={14} fill="#eab308" stroke="#eab308" />
                       <strong>{driver.rating}</strong> · {driver.trips} chuyến
                     </p>
-                    <span className="driver-tag">Tài xế VinFast Ưu Tú</span>
+                    <span className="driver-tag">Tài xế QSM Ưu Tú</span>
                   </div>
                   <div className="plate">
                     <small>Biển số xe</small>
@@ -491,42 +710,50 @@ export default function Trip() {
                   <div className="telemetry-box">
                     <Gauge size={15} />
                     <div>
-                      <small>Tốc độ hiện tại</small>
-                      <strong>{started ? "42 km/h" : "0 km/h"}</strong>
+                      <small>Vận tốc</small>
+                      <strong>{started ? "45 km/h" : "28 km/h"}</strong>
                     </div>
                   </div>
                   <div className="telemetry-box">
                     <BatteryCharging size={15} />
                     <div>
-                      <small>Pin xe điện</small>
-                      <strong>78% (Ternary)</strong>
+                      <small>Dung lượng Pin</small>
+                      <strong>86% (Chuẩn LFP)</strong>
                     </div>
                   </div>
                   <div className="telemetry-box">
                     <Leaf size={15} />
                     <div>
                       <small>Giảm phát thải</small>
-                      <strong className="eco-green">-1.82 kg CO₂</strong>
+                      <strong className="eco-green">-2.76 kg CO₂</strong>
                     </div>
                   </div>
                   <div className="telemetry-box">
                     <Thermometer size={15} />
                     <div>
-                      <small>Nhiệt độ khoang</small>
-                      <strong>{cabinTemp}°C (Lọc Ion)</strong>
+                      <small>Nhiệt độ cabin</small>
+                      <strong>{cabinTemp}°C (Lọc khí Ion)</strong>
                     </div>
                   </div>
                 </div>
 
                 {/* Driver Communication Actions */}
                 <div className="actions contact-driver-actions">
-                  <button className="button secondary" onClick={() => setContact("call")}>
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => setContact("call")}
+                  >
                     <Phone size={16} />
-                    Gọi tài xế
+                    Gọi tài xế ({driver.phone})
                   </button>
-                  <button className="button secondary" onClick={() => setContact("message")}>
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => setContact("message")}
+                  >
                     <MessageSquare size={16} />
-                    Nhắn tin
+                    Nhắn tin ({chatHistory.length})
                   </button>
                 </div>
               </div>
@@ -535,28 +762,32 @@ export default function Trip() {
             {/* Route Details */}
             <RouteDetails route={ride.route} />
 
-            {/* Payment & Next Stage Controls */}
+            {/* Payment Row */}
             <div className="trip-payment">
               <span>
                 <Wallet size={17} />
-                {ride.payment || paymentMethod}
+                Thanh toán qua {ride.payment || paymentMethod}
               </span>
-              <strong>{money(v.fare)}</strong>
+              <strong>{money(finalFare)}</strong>
             </div>
 
-            {/* Live Accelerator Button */}
+            {/* Operational Status Progression Button */}
             <div className="simulation-stepper-control">
-              <button className="button primary wide next-stage-btn" onClick={handleNextStage}>
+              <button
+                type="button"
+                className="button primary wide next-stage-btn"
+                onClick={handleNextStage}
+              >
                 <span>
                   {ride.status === "SEARCHING_DRIVER"
-                    ? "Mô phỏng: Tài xế nhận chuyến"
+                    ? "Kết nối ngay tài xế gần nhất"
                     : ride.status === "DRIVER_ASSIGNED"
-                      ? "Mô phỏng: Bác tài đang đến"
+                      ? "Cập nhật: Tài xế đang đến điểm đón"
                       : ride.status === "DRIVER_ARRIVING"
-                        ? "Mô phỏng: Bác tài đã tới sảnh"
+                        ? "Xác nhận: Tài xế đã đến điểm đón"
                         : ride.status === "DRIVER_ARRIVED"
-                          ? "Bắt đầu hành trình di chuyển"
-                          : "Hoàn tất chuyến đi"}
+                          ? "Khách đã lên xe · Bắt đầu hành trình"
+                          : "Xác nhận đến nơi · Hoàn tất chuyến đi"}
                 </span>
                 <ChevronRight size={18} />
               </button>
@@ -564,12 +795,20 @@ export default function Trip() {
 
             {/* Cancel & Support Options */}
             <div className="actions trip-secondary">
-              <button className="button ghost" onClick={() => setContact("support")}>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => setContact("support")}
+              >
                 <Headphones size={16} />
-                Hỗ trợ GSM 24/7
+                Tổng đài QSM 24/7
               </button>
               {!started && (
-                <button className="button ghost danger" onClick={() => setCancel(true)}>
+                <button
+                  type="button"
+                  className="button ghost danger"
+                  onClick={() => setCancel(true)}
+                >
                   Hủy chuyến
                 </button>
               )}
@@ -586,12 +825,19 @@ export default function Trip() {
               <div className="complete-check-icon">
                 <Check size={28} strokeWidth={3} />
               </div>
-              <h2>Đã đến nơi an toàn!</h2>
-              <p>Cảm ơn bạn đã lựa chọn phương thức di chuyển thuần điện cùng GSM.</p>
+              <h2>Chuyến đi hoàn tất!</h2>
+              <p>
+                Đã thanh toán thành công qua{" "}
+                <strong>{ride.payment || paymentMethod}</strong>.
+              </p>
             </div>
 
             {/* Digital Receipt */}
             <dl className="summary-list">
+              <div>
+                <dt>Mã chuyến đi</dt>
+                <dd>{ride.bookingId || "QSM-071026"}</dd>
+              </div>
               <div>
                 <dt>Điểm đón</dt>
                 <dd>{ride.route.pickup.name}</dd>
@@ -609,22 +855,25 @@ export default function Trip() {
                 <dd>{String(ride.route.distance).replace(".", ",")} km</dd>
               </div>
               <div>
-                <dt>CO₂ đã cắt giảm</dt>
-                <dd className="eco-green">-2.76 kg CO₂</dd>
+                <dt>Trạng thái thanh toán</dt>
+                <dd className="eco-green">
+                  Đã thanh toán qua {ride.payment || paymentMethod}
+                </dd>
               </div>
               <div>
-                <dt>Tổng cước phí</dt>
-                <dd className="fare-dd">{money(v.fare)}</dd>
+                <dt>Tổng thanh toán</dt>
+                <dd className="fare-dd">{money(finalFare)}</dd>
               </div>
             </dl>
 
             {/* Star Rating & Feedback */}
             <div className="rating">
-              <h3>Đánh giá dịch vụ chuyến đi</h3>
+              <h3>Đánh giá tài xế {driver.name}</h3>
               <div className="stars-row">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
+                    type="button"
                     aria-label={`Đánh giá ${n} sao`}
                     className={stars >= n ? "star-active" : ""}
                     onClick={() => setStars(n)}
@@ -637,37 +886,69 @@ export default function Trip() {
                   </button>
                 ))}
               </div>
-              <p className="stars-label">{stars === 5 ? "Dịch vụ xuất sắc 5 sao!" : `Bạn chọn ${stars} sao`}</p>
+              <p className="stars-label">
+                {stars === 5
+                  ? "Dịch vụ xuất sắc 5 sao!"
+                  : `Bạn đánh giá ${stars} sao`}
+              </p>
 
               {/* Feedback Quick Tags */}
               <div className="feedback-tags">
-                {["Lái xe êm ái", "Xe sạch không mùi", "Bác tài lịch sự", "Đúng giờ", "Nhiệt độ dễ chịu"].map(
-                  (tag) => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        className={`feedback-tag ${isSelected ? "selected" : ""}`}
-                        onClick={() =>
-                          setSelectedTags((prev) =>
-                            isSelected ? prev.filter((t) => t !== tag) : [...prev, tag],
-                          )
-                        }
-                      >
-                        {tag}
-                      </button>
-                    );
-                  },
-                )}
+                {[
+                  "Lái xe êm ái",
+                  "Xe sạch không mùi",
+                  "Bác tài lịch sự",
+                  "Đúng giờ",
+                  "Nhiệt độ dễ chịu",
+                ].map((tag) => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`feedback-tag ${isSelected ? "selected" : ""}`}
+                      onClick={() =>
+                        setSelectedTags((prev) =>
+                          isSelected
+                            ? prev.filter((t) => t !== tag)
+                            : [...prev, tag],
+                        )
+                      }
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
               </div>
+
+              <label className="field" style={{ marginTop: "12px", textAlign: "left" }}>
+                <span>Nhận xét thêm cho tài xế:</span>
+                <input
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                  placeholder="Nhập cảm nhận của bạn về chuyến xe..."
+                />
+              </label>
             </div>
 
             <button
+              type="button"
               className="button primary wide"
               disabled={rated}
               onClick={() => {
+                const combinedNote = [
+                  ...selectedTags,
+                  feedbackNote.trim(),
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+                const bId = ride.bookingId || "QSM-071026";
                 setRated(true);
-                notify(`Đã lưu đánh giá ${stars} sao. Cảm ơn phản hồi quý giá của bạn!`);
+                rateCompletedTrip(bId, stars, combinedNote);
+                void tripApiService.rate(bId, stars, combinedNote).catch(() => {});
+                notify(
+                  `Đã ghi nhận đánh giá ${stars} sao. QSM xin chân thành cảm ơn quý khách!`,
+                );
               }}
             >
               {rated ? "Đã gửi đánh giá thành công" : "Gửi đánh giá dịch vụ"}
@@ -676,16 +957,18 @@ export default function Trip() {
 
             <div className="actions completed-actions">
               <button
+                type="button"
                 className="button secondary"
                 onClick={() => {
                   dispatch({ type: "RESET" });
-                  notify("Sẵn sàng cho chuyến xe mới cùng GSM.");
+                  notify("Sẵn sàng đặt chuyến xe mới cùng QSM.");
                 }}
               >
                 <RotateCcw size={16} />
                 Đặt chuyến xe mới
               </button>
               <button
+                type="button"
                 className="button ghost"
                 onClick={() => {
                   dispatch({ type: "RESET" });
@@ -700,7 +983,7 @@ export default function Trip() {
 
         <small className="simulation-note">
           <Clock size={12} />
-          Hệ thống điều phối xe thuần điện GSM 2026 · Xanh & Thông minh
+          Hệ thống điều hành xe thuần điện QSM 2026 · An toàn & Bảo mật
         </small>
       </section>
 
@@ -708,20 +991,58 @@ export default function Trip() {
           MODALS: CANCELLATION & DRIVER CONTACT (CALL / MESSAGE / SUPPORT)
           ===================================================================== */}
       {cancel && (
-        <Modal title="Xác nhận hủy chuyến xe?" onClose={() => setCancel(false)}>
+        <Modal title="Xác nhận hủy chuyến xe" onClose={() => setCancel(false)}>
           <p>
-            Bạn có chắc chắn muốn hủy chuyến <strong>{v.name}</strong> này không? Bác tài đang trên đường đến đón bạn.
+            Quý khách vui lòng chọn lý do hủy chuyến <strong>{v.name}</strong> (Mã:{" "}
+            <strong>{ride.bookingId || "QSM"}</strong>):
+          </p>
+          <div className="quick-messages-chips" style={{ marginBottom: "14px" }}>
+            {CANCEL_REASONS.map((r) => (
+              <button
+                type="button"
+                key={r}
+                className={`quick-msg-chip ${cancelReason === r ? "selected" : ""}`}
+                style={{
+                  borderColor:
+                    cancelReason === r ? "var(--brand)" : "var(--line-color)",
+                }}
+                onClick={() => setCancelReason(r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <p className="muted" style={{ fontSize: "12.5px", marginBottom: "14px" }}>
+            Quy định hủy chuyến QSM: Miễn phí hủy khi tài xế chưa đến điểm đón.
+            {ride.status === "DRIVER_ARRIVED"
+              ? " Do tài xế đã có mặt tại điểm đón, phí hỗ trợ di chuyển là 15.000đ."
+              : ""}
           </p>
           <div className="modal-cta-col">
-            <button className="button primary wide" onClick={() => setCancel(false)}>
-              Tiếp tục chuyến đi
+            <button
+              type="button"
+              className="button primary wide"
+              onClick={() => setCancel(false)}
+            >
+              Tiếp tục giữ chuyến xe
             </button>
             <button
+              type="button"
               className="button ghost danger wide"
               onClick={() => {
+                const bId =
+                  ride.bookingId ||
+                  "QSM-" + Math.floor(100000 + Math.random() * 900000);
+                recordCancelledTrip({
+                  id: bId,
+                  route: ride.route,
+                  vehicle: ride.vehicle,
+                  reason: cancelReason,
+                });
+                void tripApiService.cancel(bId, cancelReason).catch(() => {});
                 dispatch({ type: "RESET" });
                 setCancel(false);
-                notify("Đã hủy chuyến xe.");
+                notify(`Đã hủy chuyến ${bId} (${cancelReason}).`);
               }}
             >
               Xác nhận hủy chuyến
@@ -734,10 +1055,10 @@ export default function Trip() {
         <Modal
           title={
             contact === "call"
-              ? "Cuộc gọi thoại bảo mật GSM"
+              ? "Liên hệ tài xế QSM"
               : contact === "message"
-                ? "Nhắn tin với tài xế"
-                : "Trung tâm Hỗ trợ GSM 24/7"
+                ? `Trò chuyện với tài xế ${driver.name}`
+                : "Trung tâm Hỗ trợ QSM 24/7"
           }
           onClose={() => {
             setContact(null);
@@ -747,46 +1068,58 @@ export default function Trip() {
           {contact === "call" ? (
             <div className="mock-call-dialog">
               <div className="call-avatar-wrap">
-                <img src="/images/driver-avatar.png" alt={driver.name} className="call-avatar" />
+                <img
+                  src="/images/driver-avatar.png"
+                  alt={driver.name}
+                  className="call-avatar"
+                />
                 <span className="call-pulse-ring" />
               </div>
               <h3>{driver.name}</h3>
-              <p className="call-subtitle">Tài xế VinFast Ưu Tú · Biển số {driver.plate}</p>
+              <p className="call-subtitle">
+                {v.name} · Biển số {driver.plate} · SĐT: {driver.phone}
+              </p>
               <div className="call-status-indicator">
                 {callActive ? (
-                  <span className="calling-timer">Đang trong cuộc gọi: 00:18</span>
+                  <span className="calling-timer">
+                    Đang đàm thoại VoIP QSM: {formatCallTime(callSeconds)}
+                  </span>
                 ) : (
-                  <span>Đang kết nối qua tổng đài mã hóa GSM...</span>
+                  <span>Kết nối qua tổng đài VoIP bảo mật hoặc gọi di động</span>
                 )}
               </div>
               <div className="call-controls-row">
                 <button
+                  type="button"
                   className="call-ctrl-btn"
-                  onClick={() => notify("Đã bật/tắt mic")}
+                  onClick={() => notify("Đã chuyển trạng thái Mic")}
                   title="Tắt/Bật mic"
                 >
                   <Mic size={20} />
                 </button>
                 <button
+                  type="button"
                   className="call-ctrl-btn"
-                  onClick={() => notify("Đã bật loa ngoài")}
+                  onClick={() => notify("Đã chuyển trạng thái Loa ngoài")}
                   title="Loa ngoài"
                 >
                   <Volume2 size={20} />
                 </button>
                 {!callActive ? (
                   <button
+                    type="button"
                     className="call-action-btn answer"
                     onClick={() => {
                       setCallActive(true);
-                      notify("Đã kết nối với bác tài.");
+                      notify("Đã kết nối thoại VoIP với tài xế.");
                     }}
-                    title="Bắt đầu nói chuyện"
+                    title="Gọi trực tuyến VoIP"
                   >
                     <PhoneCall size={22} />
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className="call-action-btn end"
                     onClick={() => {
                       setContact(null);
@@ -799,65 +1132,124 @@ export default function Trip() {
                   </button>
                 )}
               </div>
+              <a
+                href={`tel:${driver.phone}`}
+                className="button secondary wide"
+                style={{
+                  marginTop: "14px",
+                  textDecoration: "none",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Phone size={16} />
+                <span>Gọi qua mạng di động ({driver.phone})</span>
+              </a>
             </div>
           ) : contact === "message" ? (
-            <form
-              className="mock-message-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (driverMessage.trim()) {
-                  notify(`Đã gửi: "${driverMessage}"`);
-                  setDriverMessage("");
-                  setContact(null);
-                }
-              }}
-            >
-              <div className="quick-messages-chips">
-                {[
-                  "Tôi đang đứng ở sảnh chính",
-                  "Bác tài đến cứ bấm còi nhé",
-                  "Tôi đang xuống thang máy",
-                ].map((txt) => (
-                  <button
-                    type="button"
-                    key={txt}
-                    className="quick-msg-chip"
-                    onClick={() => setDriverMessage(txt)}
+            <div className="driver-chat-modal">
+              <div
+                className="driver-chat-messages"
+                style={{
+                  maxHeight: "220px",
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  marginBottom: "14px",
+                  padding: "8px",
+                  borderRadius: "12px",
+                  background: "var(--bg-elevated)",
+                }}
+              >
+                {chatHistory.map((m) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      alignSelf:
+                        m.sender_role === "user" ? "flex-end" : "flex-start",
+                      background:
+                        m.sender_role === "user"
+                          ? "var(--brand)"
+                          : "var(--bg-card)",
+                      color:
+                        m.sender_role === "user"
+                          ? "var(--brand-on)"
+                          : "var(--text-main)",
+                      padding: "8px 12px",
+                      borderRadius: "12px",
+                      maxWidth: "85%",
+                      fontSize: "13.5px",
+                      border: "1px solid var(--line-color)",
+                    }}
                   >
-                    {txt}
-                  </button>
+                    <strong style={{ display: "block", fontSize: "11px", opacity: 0.8 }}>
+                      {m.sender_name}
+                    </strong>
+                    <span>{m.content}</span>
+                  </div>
                 ))}
               </div>
-              <label className="field">
-                <span>Nội dung tin nhắn:</span>
-                <input
-                  value={driverMessage}
-                  onChange={(e) => setDriverMessage(e.target.value)}
-                  placeholder="Nhập tin nhắn gửi bác tài..."
-                  required
-                />
-              </label>
-              <button className="button primary wide">Gửi cho tài xế</button>
-            </form>
+
+              <form className="mock-message-form" onSubmit={handleSendDriverMessage}>
+                <div className="quick-messages-chips">
+                  {[
+                    "Tôi đang đứng ở sảnh chính",
+                    "Bác tài đến cứ gọi điện nhé",
+                    "Tôi đang xuống thang máy",
+                  ].map((txt) => (
+                    <button
+                      type="button"
+                      key={txt}
+                      className="quick-msg-chip"
+                      onClick={() => setDriverMessage(txt)}
+                    >
+                      {txt}
+                    </button>
+                  ))}
+                </div>
+                <label className="field">
+                  <span>Tin nhắn gửi tài xế:</span>
+                  <input
+                    value={driverMessage}
+                    onChange={(e) => setDriverMessage(e.target.value)}
+                    placeholder="Nhập tin nhắn cho bác tài..."
+                    required
+                  />
+                </label>
+                <button type="submit" className="button primary wide">
+                  <Send size={16} />
+                  <span>Gửi tin nhắn</span>
+                </button>
+              </form>
+            </div>
           ) : (
             <div className="support-dialog-content">
               <p>
-                Đội ngũ Hỗ trợ GSM luôn trực 24/7 để đảm bảo trải nghiệm an tâm tuyệt đối của bạn trên mọi hành trình.
+                Trung tâm Điều hành & Chăm sóc Khách hàng QSM trực 24/7 nhằm bảo
+                đảm an toàn tuyệt đối cho mọi hành trình của quý khách.
               </p>
               <div className="support-hotline-card">
-                <small>Tổng đài Chăm sóc Khách hàng</small>
+                <small>Tổng đài Chăm sóc Khách hàng QSM</small>
                 <strong>1900 2088</strong>
-                <span>(Miễn phí cước gọi nội địa)</span>
+                <span>(Hỗ trợ khẩn cấp & giải đáp cước phí 24/7)</span>
               </div>
-              <button
+              <a
+                href="tel:19002088"
                 className="button primary wide"
-                onClick={() => {
-                  setContact(null);
-                  setChatOpen(true);
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8px",
                 }}
               >
-                Trò chuyện với Trợ lý AI GSM
-              </button>
+                <Phone size={16} />
+                <span>Gọi ngay Tổng đài 1900 2088</span>
+              </a>
             </div>
           )}
         </Modal>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { initialRide, rideReducer } from "../src/state/rideMachine";
 import { rideService } from "../src/services/ride";
+
 describe("ride state transaction guard", () => {
   it("does not book when a vehicle is only selected", () => {
     const state = rideReducer(initialRide, {
@@ -28,7 +29,7 @@ describe("ride state transaction guard", () => {
       "AWAITING_CONFIRMATION",
     ] as const)
       state = rideReducer(state, { type: "TRANSITION", status });
-    state = rideReducer(state, { type: "BOOKED", id: "GSM-TEST" });
+    state = rideReducer(state, { type: "BOOKED", id: "QSM-TEST" });
     for (const status of [
       "DRIVER_ASSIGNED",
       "DRIVER_ARRIVING",
@@ -38,7 +39,7 @@ describe("ride state transaction guard", () => {
     ] as const)
       state = rideReducer(state, { type: "TRANSITION", status });
     expect(state.status).toBe("TRIP_COMPLETED");
-    expect(state.bookingId).toBe("GSM-TEST");
+    expect(state.bookingId).toBe("QSM-TEST");
   });
   it("prevents changing the vehicle after booking", () => {
     const state = { ...initialRide, status: "SEARCHING_DRIVER" as const };

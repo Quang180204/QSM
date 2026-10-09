@@ -10,16 +10,20 @@ import "@fontsource/be-vietnam-pro/800.css";
 import "./styles.css";
 import "./tech2026.css";
 import App from "./App";
+import { AuthProvider } from "./state/AuthProvider";
 import { RideProvider } from "./state/RideProvider";
 import { ThemeProvider } from "./state/ThemeContext";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <MotionConfig reducedMotion="user">
         <ThemeProvider>
-          <RideProvider>
-            <App />
-          </RideProvider>
+          <AuthProvider>
+            <RideProvider>
+              <App />
+            </RideProvider>
+          </AuthProvider>
         </ThemeProvider>
       </MotionConfig>
     </BrowserRouter>

@@ -21,9 +21,9 @@ export default function VehicleShowcase3D({
 }: {
   onBook: (id: VehicleId) => void;
 }) {
-  const [index, setIndex] = useState(1); // Default to VF5 (index 1)
+  const [index, setIndex] = useState(1); // Default to QSM Taxi VF5 (index 1)
   const [details, setDetails] = useState(false);
-  const [isRotating, setIsRotating] = useState(true); // Auto 360° rotation enabled by default!
+  const [isRotating, setIsRotating] = useState(true);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,13 +50,13 @@ export default function VehicleShowcase3D({
   };
 
   return (
-    <section className="showcase" aria-label="Đội xe GSM">
-      {/* Top Bar: 'GSM' tech badge and clean navigation arrows */}
+    <section className="showcase" aria-label="Đội xe QSM">
+      {/* Top Bar: 'QSM' tech badge and clean navigation arrows */}
       <div className="section-line">
         <div className="showcase-badge-wrap">
           <span className="tech-chip gsm-badge">
             <Zap size={14} className="badge-glow-icon" />
-            <strong className="badge-gsm-text">GSM</strong>
+            <strong className="badge-gsm-text">QSM</strong>
           </span>
         </div>
         <div className="carousel-arrows">
@@ -93,13 +93,13 @@ export default function VehicleShowcase3D({
           </div>
           <h2>
             {v.name}
-            <span className="brand-dot"> · GSM</span>
+            <span className="brand-dot"> · QSM</span>
           </h2>
           <p>{v.tagline}</p>
         </motion.div>
       </AnimatePresence>
 
-      {/* 360° Studio Controls (Pure auto 360 rotate, no WebGL/Studio text) */}
+      {/* 360° Studio Controls */}
       <div className="showcase-controls-bar">
         <button
           className={`mode-btn rotate-btn ${isRotating ? "active" : ""}`}
@@ -116,7 +116,7 @@ export default function VehicleShowcase3D({
         className="vehicle-canvas"
         ref={cardRef}
         role="img"
-        aria-label={"Mô hình 360° " + v.name + " GSM"}
+        aria-label={"Góc nhìn 360° " + v.name + " QSM"}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onTouchStart={(e) => {
@@ -127,21 +127,17 @@ export default function VehicleShowcase3D({
           if (Math.abs(diff) > 45) change(diff > 0 ? -1 : 1);
         }}
       >
-        {/* Galaxy cyber aura & background lights */}
         <div className="studio-halo" />
         <div className="cyber-grid-floor" />
 
-        {/* 3D Rotational Stage with auto-spin and tilt */}
         <div
           className={`real-stage-container ${isRotating ? "rotating-stage" : ""}`}
           style={{
             transform: `perspective(1100px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
           }}
         >
-          {/* Holographic vertical scan line */}
           <div className="hologram-scanner" />
 
-          {/* High-tech Multi-tier Neon Pedestal */}
           <div className="podium-disc">
             <div className="podium-ring-outer" />
             <div className="podium-ring-dashed" />
@@ -149,7 +145,6 @@ export default function VehicleShowcase3D({
             <div className="podium-glow-center" />
           </div>
 
-          {/* Clean Transparent Vehicle Studio Cutout */}
           <div className="vehicle-image-wrapper">
             <AnimatePresence mode="wait">
               <motion.img
@@ -166,7 +161,6 @@ export default function VehicleShowcase3D({
             </AnimatePresence>
           </div>
 
-          {/* Under-chassis neon floor reflection */}
           <div className="vehicle-reflection" aria-hidden="true">
             <img src={v.image} alt="" draggable={false} />
           </div>
@@ -239,7 +233,7 @@ export default function VehicleShowcase3D({
           {details ? "Đóng thông số" : "Khám phá công nghệ"}
         </button>
         <button className="button primary" onClick={() => onBook(v.id)}>
-          <span>Đặt xe này với AI</span>
+          <span>Đặt {v.name} ngay</span>
           <MoveUpRight size={17} />
         </button>
       </div>
@@ -271,8 +265,8 @@ export default function VehicleShowcase3D({
               <strong className="spec-val">{v.battery}</strong>
             </div>
             <div className="spec-card">
-              <span className="spec-label">Công nghệ hỗ trợ</span>
-              <strong className="spec-val">AI Trợ lý GSM 2026</strong>
+              <span className="spec-label">Tiêu chuẩn an toàn</span>
+              <strong className="spec-val">QSM SafeTrip 2026</strong>
             </div>
           </div>
         </motion.div>

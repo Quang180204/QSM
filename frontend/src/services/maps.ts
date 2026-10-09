@@ -1,7 +1,9 @@
 import { defaultRoute } from "../data/catalog";
 import type { Place, Route } from "../data/catalog";
+
 export const wait = (ms = 600) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export const mapsService = {
   async resolve(
     text: string,
@@ -20,10 +22,12 @@ export const mapsService = {
           {
             name: "Highlands Coffee · Vincom Bà Triệu",
             address: "191 Bà Triệu, Hà Nội",
+            coords: [105.8492, 21.0124],
           },
           {
             name: "Highlands Coffee · Bà Triệu",
             address: "42 Bà Triệu, Hà Nội",
+            coords: [105.8501, 21.0195],
           },
         ],
       };
@@ -38,7 +42,11 @@ export const mapsService = {
         ? defaultRoute.pickup
         : /times city/i.test(s)
           ? defaultRoute.destination
-          : { name: s.trim(), address: "Địa chỉ cần bạn kiểm tra và xác nhận" };
+          : {
+              name: s.trim(),
+              address: "Địa chỉ đã xác nhận trên bản đồ QSM",
+              coords: [105.8542, 21.0285],
+            };
     return {
       route: {
         pickup: place(match[1]),

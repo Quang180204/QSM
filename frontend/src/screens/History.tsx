@@ -10,16 +10,19 @@ import {
   Calendar,
   Clock,
   RotateCcw,
+  Star,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
 import { money, vehicleById, driver } from "../data/catalog";
 import type { HistoryTrip } from "../data/catalog";
 import Modal from "../components/Modal";
 import RouteMap from "../components/RouteMap";
-import { RouteDetails } from "../components/chat/SmartCards";
+import { RouteDetails } from "../components/RouteDetails";
 
 export default function History() {
-  const { history, dispatch, setChatOpen } = useRide();
+  const { history, dispatch, notify } = useRide();
+  const nav = useNavigate();
   const [filter, setFilter] = useState("Tất cả");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<HistoryTrip | null>(null);
@@ -30,7 +33,7 @@ export default function History() {
         (filter === "Hoàn thành"
           ? t.status === "completed"
           : t.status === "cancelled")) &&
-      `${t.route.pickup.name} ${t.route.destination.name}`
+      `${t.id} ${t.route.pickup.name} ${t.route.destination.name}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
@@ -44,27 +47,34 @@ export default function History() {
       <header className="page-heading">
         <div className="history-header-badge">
           <Sparkles size={13} />
-          <span>NHẬT KÝ HÀNH TRÌNH GSM</span>
+          <span>NHẬT KÝ HÀNH TRÌNH QSM</span>
         </div>
         <h1>Lịch sử chuyến đi</h1>
-        <p>Theo dõi các chuyến xe thuần điện và lượng phát thải CO₂ đã cắt giảm.</p>
+        <p>
+          Theo dõi hóa đơn điện tử các chuyến xe thuần điện QSM và lượng phát thải
+          CO₂ đã cắt giảm.
+        </p>
       </header>
 
-      {/* GSM Eco Carbon Impact Banner */}
+      {/* QSM Eco Carbon Impact Banner */}
       <div className="history-eco-summary-card">
         <div className="eco-summary-item">
           <span className="eco-stat-val">{completedCount}</span>
-          <span className="eco-stat-label">Chuyến xe xanh</span>
+          <span className="eco-stat-label">Chuyến hoàn tất</span>
         </div>
         <div className="eco-summary-divider" />
         <div className="eco-summary-item">
-          <span className="eco-stat-val eco-green">-6.82 <small>kg</small></span>
+          <span className="eco-stat-val eco-green">
+            -6.82 <small>kg</small>
+          </span>
           <span className="eco-stat-label">Giảm phát thải CO₂</span>
         </div>
         <div className="eco-summary-divider" />
         <div className="eco-summary-item">
-          <span className="eco-stat-val">42.6 <small>km</small></span>
-          <span className="eco-stat-label">Khoảng cách êm ái</span>
+          <span className="eco-stat-val">
+            57.0 <small>km</small>
+          </span>
+          <span className="eco-stat-label">Quãng đường thuần điện</span>
         </div>
       </div>
 
@@ -73,12 +83,16 @@ export default function History() {
         <Search size={18} className="search-icon" />
         <input
           aria-label="Tìm chuyến đi"
-          placeholder="Tìm theo điểm đón hoặc điểm đến..."
+          placeholder="Tìm theo mã chuyến (QSM-...), điểm đón hoặc điểm đến..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {search && (
-          <button className="clear-search-btn" onClick={() => setSearch("")}>
+          <button
+            type="button"
+            className="clear-search-btn"
+            onClick={() => setSearch("")}
+          >
             ×
           </button>
         )}
@@ -93,6 +107,7 @@ export default function History() {
         ].map((f) => (
           <button
             key={f.label}
+            type="button"
             className={`filter-pill ${filter === f.label ? "selected" : ""}`}
             aria-pressed={filter === f.label}
             onClick={() => setFilter(f.label)}
@@ -145,19 +160,25 @@ export default function History() {
                         <span className="history-time-badge">
                           <Clock size={11} /> {t.time}
                         </span>
-                        <span className="history-veh-name">{veh.name}</span>
+                        <span className="history-veh-name">
+                          {veh.name} · {t.id}
+                        </span>
                       </div>
 
                       {/* Route Path Flow */}
                       <div className="history-route-flow">
                         <div className="route-flow-item pickup">
                           <span className="dot pickup" />
-                          <strong className="point-name">{t.route.pickup.name}</strong>
+                          <strong className="point-name">
+                            {t.route.pickup.name}
+                          </strong>
                         </div>
                         <div className="route-flow-connector" />
                         <div className="route-flow-item destination">
                           <span className="dot dest" />
-                          <strong className="point-name">{t.route.destination.name}</strong>
+                          <strong className="point-name">
+                            {t.route.destination.name}
+                          </strong>
                         </div>
                       </div>
 
@@ -182,12 +203,20 @@ export default function History() {
                             <span>-2.76 kg CO₂</span>
                           </span>
                         )}
+                        {t.ratingStars && (
+                          <span className="eco-saving-chip">
+                            <Star size={11} fill="#eab308" stroke="#eab308" />
+                            <span>{t.ratingStars} sao</span>
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Price and Action Icon */}
                     <div className="history-price-col">
-                      <strong className={`history-fare-num ${!isCompleted ? "cancelled-fare" : ""}`}>
+                      <strong
+                        className={`history-fare-num ${!isCompleted ? "cancelled-fare" : ""}`}
+                      >
                         {isCompleted ? money(t.fare) : "0đ"}
                       </strong>
                       <span className="chevron-link">
@@ -209,8 +238,18 @@ export default function History() {
             <ReceiptText size={38} />
           </div>
           <h3>Không tìm thấy chuyến đi</h3>
-          <p>Không có hành trình nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm của bạn.</p>
-          <button className="button secondary" onClick={() => { setSearch(""); setFilter("Tất cả"); }}>
+          <p>
+            Không có hành trình nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm của
+            bạn.
+          </p>
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => {
+              setSearch("");
+              setFilter("Tất cả");
+            }}
+          >
             Đặt lại bộ lọc
           </button>
         </div>
@@ -218,7 +257,10 @@ export default function History() {
 
       {/* Modal Details */}
       {selected && (
-        <Modal title="Chi tiết hành trình" onClose={() => setSelected(null)}>
+        <Modal
+          title="Hóa đơn điện tử & Chi tiết hành trình"
+          onClose={() => setSelected(null)}
+        >
           <div className="history-modal-vehicle-banner">
             <img
               src={vehicleById(selected.vehicle).image}
@@ -229,7 +271,7 @@ export default function History() {
             <div className="history-modal-vehicle-text">
               <strong>{vehicleById(selected.vehicle).name}</strong>
               <small>{vehicleById(selected.vehicle).realModelName}</small>
-              <span className="eco-tag">100% Thuần điện GSM</span>
+              <span className="eco-tag">100% Thuần điện QSM</span>
             </div>
           </div>
 
@@ -238,14 +280,14 @@ export default function History() {
 
           <dl className="summary-list history-summary-list">
             <div>
-              <dt>Tài xế tiếp nhận</dt>
+              <dt>Tài xế phụ trách</dt>
               <dd className="driver-dd">
                 <img
                   src="/images/driver-avatar.png"
                   alt=""
                   className="driver-micro-avatar"
                 />
-                {driver.name} (4.9★)
+                {driver.name} ({driver.rating}★)
               </dd>
             </div>
             <div>
@@ -261,29 +303,50 @@ export default function History() {
               <dd>{selected.route.distance} km</dd>
             </div>
             <div>
-              <dt>Mã chuyến GSM</dt>
+              <dt>Mã chuyến QSM</dt>
               <dd className="booking-code">{selected.id}</dd>
             </div>
             <div>
+              <dt>Phương thức thanh toán</dt>
+              <dd>{selected.paymentMethod || "Ví QSM Pay"}</dd>
+            </div>
+            {selected.status === "cancelled" && selected.cancelReason ? (
+              <div>
+                <dt>Lý do hủy chuyến</dt>
+                <dd>{selected.cancelReason}</dd>
+              </div>
+            ) : null}
+            {selected.feedbackNote ? (
+              <div>
+                <dt>Đánh giá khách hàng</dt>
+                <dd>
+                  {selected.ratingStars || 5}★ · {selected.feedbackNote}
+                </dd>
+              </div>
+            ) : null}
+            <div>
               <dt>Tổng cước thanh toán</dt>
-              <dd className="fare-highlight">{money(selected.fare)}</dd>
+              <dd className="fare-highlight">
+                {selected.status === "completed" ? money(selected.fare) : "0đ"}
+              </dd>
             </div>
           </dl>
 
           <button
+            type="button"
             className="button primary wide"
             onClick={() => {
               dispatch({ type: "RESET" });
               dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
-              dispatch({ type: "TRANSITION", status: "RESOLVING_LOCATION" });
               dispatch({ type: "SET_ROUTE", route: selected.route });
               dispatch({ type: "SELECT_VEHICLE", vehicle: selected.vehicle });
               setSelected(null);
-              setChatOpen(true);
+              notify("Đã nạp lộ trình chuyến đi. Sẵn sàng đặt xe!");
+              nav("/chuyen-di");
             }}
           >
             <RotateCcw size={16} />
-            <span>Đặt lại chuyến này với AI</span>
+            <span>Đặt lại hành trình này</span>
           </button>
         </Modal>
       )}

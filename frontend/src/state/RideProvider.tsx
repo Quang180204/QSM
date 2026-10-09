@@ -9,25 +9,34 @@ import type { Dispatch, ReactNode } from "react";
 import { initialRide, rideReducer } from "./rideMachine";
 import type { RideAction, RideState } from "./rideMachine";
 import { historySeed } from "../data/catalog";
-import type { HistoryTrip } from "../data/catalog";
+import type { HistoryTrip, Route, VehicleId } from "../data/catalog";
 import { tripService } from "../services/trip";
+
 interface Context {
   ride: RideState;
   dispatch: Dispatch<RideAction>;
   history: HistoryTrip[];
-  chatOpen: boolean;
-  setChatOpen: (v: boolean) => void;
-  chatDraft: string;
-  setChatDraft: (v: string) => void;
+  recordCancelledTrip: (params: {
+    id: string;
+    route: Route;
+    vehicle: VehicleId;
+    reason: string;
+  }) => void;
+  rateCompletedTrip: (
+    bookingId: string,
+    stars: number,
+    feedbackNote: string,
+  ) => void;
   notify: (text: string) => void;
 }
+
 const RideContext = createContext<Context | null>(null);
+
 export function RideProvider({ children }: { children: ReactNode }) {
   const [ride, dispatch] = useReducer(rideReducer, initialRide);
-  const [history, setHistory] = useState(historySeed);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatDraft, setChatDraft] = useState("");
+  const [history, setHistory] = useState<HistoryTrip[]>(historySeed);
   const [toast, setToast] = useState("");
+
   useEffect(() => {
     const next = tripService.nextStatus(ride.status);
     if (!next) return;
@@ -37,6 +46,7 @@ export function RideProvider({ children }: { children: ReactNode }) {
     );
     return () => clearTimeout(timer);
   }, [ride.status]);
+
   useEffect(() => {
     if (ride.status !== "TRIP_COMPLETED" || !ride.bookingId) return;
     setHistory((prev) =>
@@ -60,26 +70,71 @@ export function RideProvider({ children }: { children: ReactNode }) {
                     ? 72000
                     : 185000,
               status: "completed",
+              paymentMethod: ride.payment,
             },
             ...prev,
           ],
     );
   }, [ride]);
+
+  const recordCancelledTrip = ({
+    id,
+    route,
+    vehicle,
+    reason,
+  }: {
+    id: string;
+    route: Route;
+    vehicle: VehicleId;
+    reason: string;
+  }) => {
+    setHistory((prev) => [
+      {
+        id,
+        group: "Hôm nay",
+        time: new Intl.DateTimeFormat("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Ho_Chi_Minh",
+        }).format(new Date()),
+        route,
+        vehicle,
+        fare: 0,
+        status: "cancelled",
+        cancelReason: reason,
+      },
+      ...prev,
+    ]);
+  };
+
+  const rateCompletedTrip = (
+    bookingId: string,
+    stars: number,
+    feedbackNote: string,
+  ) => {
+    setHistory((prev) =>
+      prev.map((item) =>
+        item.id === bookingId
+          ? { ...item, ratingStars: stars, feedbackNote }
+          : item,
+      ),
+    );
+  };
+
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
+
   return (
     <RideContext.Provider
       value={{
         ride,
         dispatch,
         history,
-        chatOpen,
-        setChatOpen,
-        chatDraft,
-        setChatDraft,
+        recordCancelledTrip,
+        rateCompletedTrip,
         notify: setToast,
       }}
     >
@@ -92,6 +147,7 @@ export function RideProvider({ children }: { children: ReactNode }) {
     </RideContext.Provider>
   );
 }
+
 export function useRide() {
   const c = useContext(RideContext);
   if (!c) throw new Error("RideProvider missing");

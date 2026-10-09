@@ -8,8 +8,8 @@ import {
   Leaf,
   Navigation,
   Plane,
+  ShieldAlert,
   ShoppingBag,
-  Sparkles,
   Ticket,
   User,
   Sun,
@@ -17,24 +17,60 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
+import { useAuth } from "../state/AuthProvider";
 import { useTheme } from "../state/ThemeContext";
+import { popularRoutes } from "../data/catalog";
 import VehicleShowcase3D from "../components/VehicleShowcase3D";
-import Mascot from "../components/Mascot";
-import GsmLogo from "../components/GsmLogo";
+import QsmLogo from "../components/QsmLogo";
 
 export default function Home() {
-  const { setChatOpen, setChatDraft, dispatch, notify } = useRide();
+  const { dispatch, notify } = useRide();
+  const { user, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [destination, setDestination] = useState("");
   const nav = useNavigate();
 
+  const firstName = user?.name
+    ? user.name.trim().split(/\s+/).slice(-1)[0]
+    : "Khách";
+
+  const handleSelectQuickDestination = (placeName: string) => {
+    setDestination(placeName);
+    const matchedRoute =
+      popularRoutes.find((r) =>
+        r.destination.name.toLowerCase().includes(placeName.toLowerCase()),
+      ) || {
+        ...popularRoutes[0],
+        destination: {
+          name: placeName,
+          address: `${placeName}, Hà Nội`,
+          coords: [105.8542, 21.0285] as [number, number],
+        },
+      };
+
+    dispatch({ type: "RESET" });
+    dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
+    dispatch({ type: "SET_ROUTE", route: matchedRoute });
+    nav("/chuyen-di");
+  };
+
   return (
     <>
       <header className="app-header">
-        <a className="brand" href="/" aria-label="GSM Trang chủ">
-          <GsmLogo size={40} />
+        <a className="brand" href="/" aria-label="QSM Trang chủ">
+          <QsmLogo size={40} />
         </a>
         <div className="header-actions">
+          {isAdmin && (
+            <button
+              className="icon-button"
+              aria-label="Cổng Quản trị QSM"
+              title="Mở Cổng Quản trị viên (/admin)"
+              onClick={() => nav("/admin")}
+            >
+              <ShieldAlert size={20} />
+            </button>
+          )}
           <button
             className="icon-button theme-toggle-btn"
             aria-label={
@@ -58,7 +94,11 @@ export default function Home() {
           <button
             className="icon-button notification-button"
             aria-label="Thông báo"
-            onClick={() => notify("Bạn có thông báo mới: Giảm 25.000đ khi đi VF5 hôm nay!")}
+            onClick={() =>
+              notify(
+                "Ưu đãi QSM 2026: Nhập mã QSM2026 giảm ngay 25.000đ cho chuyến xe thuần điện hôm nay!",
+              )
+            }
           >
             <Bell size={20} />
             <i />
@@ -66,7 +106,7 @@ export default function Home() {
           <button
             className="user-button"
             aria-label="Mở tài khoản"
-            onClick={() => nav("/tai-khoan")}
+            onClick={() => nav(user ? "/tai-khoan" : "/dang-nhap")}
           >
             <User size={20} />
           </button>
@@ -76,7 +116,7 @@ export default function Home() {
         <section className="welcome">
           <div>
             <p>
-              Xin chào, Quang <span>👋</span>
+              Xin chào, {firstName} <span>👋</span>
             </p>
             <h1>
               Hôm nay bạn
@@ -87,17 +127,24 @@ export default function Home() {
           <button className="club" onClick={() => nav("/tai-khoan")}>
             <Leaf size={17} />
             <span>
-              Hội viên GSM<small>Hạng Kim Cương</small>
+              Hội viên QSM
+              <small>
+                {user?.membership_tier === "platinum"
+                  ? "Hạng Kim Cương"
+                  : user?.membership_tier === "gold"
+                    ? "Hạng Vàng"
+                    : "Hạng Tiêu Chuẩn"}
+              </small>
             </span>
             <ChevronRight size={15} />
           </button>
         </section>
+
         <form
           className="destination-search"
           onSubmit={(e) => {
             e.preventDefault();
-            setChatDraft(destination);
-            setChatOpen(true);
+            handleSelectQuickDestination(destination.trim() || "Times City");
           }}
         >
           <Navigation size={22} />
@@ -105,50 +152,50 @@ export default function Home() {
             <label htmlFor="destination">Điểm đến</label>
             <input
               id="destination"
-              placeholder="Nhập điểm đến của bạn"
+              placeholder="Nhập điểm đến của bạn (VD: Times City, Nội Bài...)"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
             />
           </div>
-          <button aria-label="Đặt xe với AI">
-            <Sparkles size={21} />
+          <button type="submit" aria-label="Tìm chuyến xe QSM">
+            <ArrowRight size={21} />
           </button>
         </form>
+
         <div className="quick-places">
           {[
-            { icon: BriefcaseBusiness, name: "Đi làm" },
-            { icon: HomeIcon, name: "Về nhà" },
+            { icon: BriefcaseBusiness, name: "Times City" },
+            { icon: HomeIcon, name: "Highlands Bà Triệu" },
             { icon: Plane, name: "Sân bay Nội Bài" },
-            { icon: ShoppingBag, name: "Vincom" },
+            { icon: ShoppingBag, name: "Vincom Metropolis" },
           ].map(({ icon: Icon, name }) => (
             <button
               key={name}
-              onClick={() => {
-                setDestination(name);
-                setChatDraft(name);
-                setChatOpen(true);
-              }}
+              type="button"
+              onClick={() => handleSelectQuickDestination(name)}
             >
               <Icon size={16} />
               {name}
             </button>
           ))}
         </div>
+
         <VehicleShowcase3D
           onBook={(vehicle) => {
             dispatch({ type: "SELECT_VEHICLE", vehicle });
-            setChatOpen(true);
+            nav("/chuyen-di");
           }}
         />
+
         <section className="eco-section">
           <div className="eco-icon">
             <Leaf size={24} />
           </div>
           <div>
             <span className="eyebrow">Mỗi chuyến đi, một điều tốt đẹp</span>
-            <h3>Hành trình xanh của bạn</h3>
+            <h3>Hành trình thuần điện QSM</h3>
             <p>
-              Bạn đã góp phần giảm <strong>42,8 kg CO₂</strong>
+              Bạn đã góp phần giảm <strong>42,8 kg CO₂</strong> cho đô thị
             </p>
           </div>
           <div className="eco-progress">
@@ -158,42 +205,34 @@ export default function Home() {
             <i />
           </div>
         </section>
+
         <section className="offer">
           <div className="offer-icon">
             <Ticket size={23} />
           </div>
           <div>
-            <span className="eyebrow">Ưu đãi dành cho bạn</span>
-            <h3>Đi xanh, tiết kiệm 25.000đ</h3>
+            <span className="eyebrow">Ưu đãi độc quyền QSM</span>
+            <h3>Di chuyển xanh, giảm 25.000đ</h3>
             <p>
-              Dùng mã <strong>GSMAI25</strong> cho chuyến tiếp theo
+              Dùng mã <strong>QSM2026</strong> cho chuyến xe tiếp theo
             </p>
           </div>
           <button
-            aria-label="Lưu mã GSMAI25"
+            type="button"
+            aria-label="Lưu mã QSM2026"
             onClick={() => {
-              void navigator.clipboard?.writeText("GSMAI25");
-              notify("Đã lưu mã GSMAI25.");
+              void navigator.clipboard?.writeText("QSM2026");
+              notify("Đã sao chép mã ưu đãi QSM2026 (-25.000đ).");
             }}
           >
             Lưu mã
             <ArrowRight size={16} />
           </button>
         </section>
-        <button
-          className="assistant-invitation"
-          onClick={() => setChatOpen(true)}
-        >
-          <Mascot />
-          <span>
-            <strong>Một câu nói. Một hành trình.</strong>
-            <small>Để AI GSM giúp bạn tìm chuyến xe phù hợp.</small>
-          </span>
-          <ArrowRight size={20} />
-        </button>
+
         <p className="home-footer">
           <Leaf size={12} />
-          Đi nhẹ hơn. Sống xanh hơn. Cùng GSM.
+          Đi nhẹ hơn. Sống xanh hơn. Cùng QSM (Quick Smart Mobility).
         </p>
       </div>
     </>

@@ -1,0 +1,17 @@
+{
+  "name": "qsm-monorepo",
+  "private": true,
+  "version": "2.0.0",
+  "description": "QSM (Quick Smart Mobility) — Nền tảng đặt xe thuần điện 2026 (Frontend + Backend Monorepo)",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "lint": "npm --prefix frontend run lint",
+    "test": "npm --prefix frontend test",
+    "db:migrate": "npm --prefix backend run db:migrate",
+    "db:seed": "npm --prefix backend run db:seed"
+  }
+}
