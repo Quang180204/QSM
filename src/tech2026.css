@@ -1,0 +1,3430 @@
+/* ==========================================================================
+   GSM AI 2026 - ULTRA FUTURISTIC GALAXY CYBER EV DESIGN SYSTEM
+   Inspired by: Galaxy Cyan Aesthetics, skills.sh UI, 360° Studio Showcase,
+   Chibi EV Robot 3D, and State-of-the-Art Automotive Micro-Interactions.
+   ========================================================================== */
+
+:root {
+  --font-main: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --transition-smooth: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-spring: 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --------------------------------------------------------------------------
+   DARK THEME: Galaxy Cyber Obsidian (Deep Space + Electric Cyan Glow)
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --bg-app: #020609;
+  --bg-shell: #050d13;
+  --bg-surface: #0a1722;
+  --bg-card: rgba(10, 23, 34, 0.78);
+  --bg-card-hover: rgba(14, 31, 46, 0.92);
+  --bg-elevated: #0f2130;
+  --bg-glass: rgba(5, 13, 19, 0.85);
+  
+  --text-main: #e2f4f1;
+  --text-heading: #ffffff;
+  --text-sub: #8dc1b8;
+  --text-muted: #538179;
+  
+  --brand: #00f5d4;
+  --brand-secondary: #00b4d8;
+  --brand-gradient: linear-gradient(135deg, #00f5d4 0%, #00b4d8 55%, #0284c7 100%);
+  --brand-hover: #26ffdf;
+  --brand-glow: rgba(0, 245, 212, 0.42);
+  --brand-subtle: rgba(0, 245, 212, 0.12);
+  --brand-border: rgba(0, 245, 212, 0.28);
+  --brand-on: #021a18;
+  
+  --accent-gold: #fbbf24;
+  --accent-gold-glow: rgba(251, 191, 36, 0.3);
+  
+  --line-color: rgba(0, 245, 212, 0.14);
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --shadow-elevated: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 28px -4px rgba(0, 245, 212, 0.22);
+  --shadow-glow: 0 0 32px rgba(0, 245, 212, 0.35);
+  
+  --map-filter: invert(0.92) hue-rotate(155deg) brightness(0.85) contrast(1.15);
+}
+
+/* --------------------------------------------------------------------------
+   LIGHT THEME: Crisp Solar Cyan (Aerodynamic Modern EV)
+   -------------------------------------------------------------------------- */
+[data-theme="light"] {
+  --bg-app: #eef6f4;
+  --bg-shell: #f4fbf8;
+  --bg-surface: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-card-hover: #ffffff;
+  --bg-elevated: #e6f5f0;
+  --bg-glass: rgba(244, 251, 248, 0.88);
+  
+  --text-main: #13332b;
+  --text-heading: #07221b;
+  --text-sub: #396459;
+  --text-muted: #5e8b80;
+  
+  --brand: #00bfae;
+  --brand-secondary: #008779;
+  --brand-gradient: linear-gradient(135deg, #00bfae 0%, #008fa0 100%);
+  --brand-hover: #009e90;
+  --brand-glow: rgba(0, 191, 174, 0.3);
+  --brand-subtle: rgba(0, 191, 174, 0.1);
+  --brand-border: rgba(0, 191, 174, 0.26);
+  --brand-on: #ffffff;
+  
+  --accent-gold: #d97706;
+  --accent-gold-glow: rgba(217, 119, 6, 0.25);
+  
+  --line-color: #d8eee7;
+  --shadow-subtle: 0 4px 18px rgba(0, 77, 64, 0.06);
+  --shadow-elevated: 0 14px 40px -12px rgba(0, 77, 64, 0.12);
+  --shadow-glow: 0 0 24px rgba(0, 191, 174, 0.25);
+  
+  --map-filter: none;
+}
+
+/* --------------------------------------------------------------------------
+   GLOBAL LAYOUT & RESETS (FIX CROOKED & MISALIGNED SPACING)
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-app);
+  color: var(--text-main);
+  transition: background 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  max-width: 680px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background: var(--bg-shell);
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.5);
+  overflow-x: hidden;
+}
+
+/* Clean, symmetrical content wrapper */
+.home-content,
+.standard-screen,
+.trip-screen {
+  padding: 16px 20px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   HEADER & FUTURISTIC BRAND LOGO
+   -------------------------------------------------------------------------- */
+.app-header {
+  height: 76px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--line-color);
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+.brand {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  outline: none;
+}
+
+/* Modern Cyber SVG Brand Logo */
+.gsm-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gsm-brand-icon-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.gsm-brand-svg {
+  width: 100%;
+  height: 100%;
+  transition: transform var(--transition-spring);
+  filter: drop-shadow(0 0 10px var(--brand-glow));
+}
+
+.brand:hover .gsm-brand-svg {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.gsm-pulse-node {
+  animation: pulseNode 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulseNode {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 1; filter: drop-shadow(0 0 6px #00f5d4); }
+}
+
+.gsm-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.gsm-brand-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.gsm-title-gradient {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px var(--brand-glow);
+}
+
+.gsm-badge-year {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0284c7, #00f5d4);
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.gsm-brand-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 1.2px;
+  margin-top: 2px;
+}
+
+.gsm-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle-btn {
+  background: var(--brand-subtle) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  color: var(--brand) !important;
+  border-radius: 50% !important;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  transition: all var(--transition-smooth);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 16px var(--brand-glow);
+  background: var(--brand) !important;
+  color: var(--brand-on) !important;
+}
+
+.notification-button,
+.user-button {
+  background: var(--brand-subtle) !important;
+  border: 1px solid var(--line-color) !important;
+  color: var(--text-main) !important;
+  border-radius: 50% !important;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  transition: all var(--transition-smooth);
+}
+
+.notification-button:hover,
+.user-button:hover {
+  border-color: var(--brand-border) !important;
+  color: var(--brand) !important;
+  transform: scale(1.06);
+}
+
+/* --------------------------------------------------------------------------
+   WELCOME SECTION & QUICK PLACES
+   -------------------------------------------------------------------------- */
+.welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.welcome p {
+  font-size: 13.5px;
+  color: var(--text-sub);
+  margin: 0 0 4px;
+}
+
+.welcome h1 {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.club {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--brand-border);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.club:hover {
+  border-color: var(--brand);
+  box-shadow: 0 0 18px var(--brand-glow);
+  transform: translateY(-2px);
+}
+
+.club small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
+/* Search Bar (Capsule with AI Sparkle) */
+.destination-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 99px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: all var(--transition-smooth);
+}
+
+.destination-search:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 24px var(--brand-glow);
+}
+
+.destination-search > svg {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.destination-search > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.destination-search label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--brand);
+}
+
+.destination-search input {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 2px 0 0;
+  width: 100%;
+}
+
+.destination-search input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.destination-search button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  border: none;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 16px var(--brand-glow);
+  transition: all var(--transition-spring);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.destination-search button:hover {
+  transform: scale(1.1) rotate(10deg);
+}
+
+/* Quick Place Chips */
+.quick-places {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.quick-places button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-color);
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.quick-places button:hover {
+  border-color: var(--brand-border);
+  color: var(--brand);
+  background: var(--brand-subtle);
+  transform: translateY(-2px);
+}
+
+/* --------------------------------------------------------------------------
+   360° VEHICLE SHOWCASE (NO WEBGL, NO PHOTO FRAME, PURE FREE FLOATING CAR)
+   -------------------------------------------------------------------------- */
+.showcase {
+  border-radius: 26px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--brand-border);
+  box-shadow: var(--shadow-elevated);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-smooth);
+}
+
+/* Top bar with 'GSM' badge and clean nav arrows */
+.section-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.showcase-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tech-chip.gsm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.16) 0%, rgba(2, 132, 199, 0.2) 100%);
+  border: 1px solid var(--brand-border);
+  box-shadow: 0 0 14px var(--brand-glow);
+}
+
+.tech-chip.gsm-badge .badge-glow-icon {
+  color: var(--brand);
+}
+
+.tech-chip.gsm-badge .badge-gsm-text {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--brand);
+}
+
+.carousel-arrows {
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-arrows .icon-button {
+  background: var(--brand-subtle) !important;
+  color: var(--brand) !important;
+  border: 1px solid var(--brand-border) !important;
+  border-radius: 50% !important;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.carousel-arrows .icon-button:hover {
+  background: var(--brand) !important;
+  color: var(--brand-on) !important;
+  transform: scale(1.1);
+}
+
+/* Vehicle Heading */
+.vehicle-heading {
+  text-align: center;
+  margin: 12px 0 6px;
+}
+
+.heading-top-badges {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.badge.primary-badge {
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  box-shadow: 0 2px 10px var(--brand-glow);
+}
+
+.badge.model-badge {
+  background: var(--bg-surface);
+  color: var(--brand);
+  border: 1px solid var(--brand-border);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.vehicle-heading h2 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 4px 0;
+  color: var(--text-heading);
+}
+
+.vehicle-heading h2 .brand-dot {
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.vehicle-heading p {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0 auto;
+  max-width: 340px;
+}
+
+/* 360° Rotate Control Button */
+.showcase-controls-bar {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 4px;
+}
+
+.mode-btn.rotate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 99px;
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  color: var(--brand);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.mode-btn.rotate-btn.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.2) 0%, rgba(2, 132, 199, 0.25) 100%);
+  border-color: var(--brand);
+  box-shadow: 0 0 16px var(--brand-glow);
+}
+
+.mode-btn.rotate-btn .spin-icon {
+  animation: spinSlow 4s linear infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 3D VEHICLE STAGE & HOLOGRAM PEDESTAL */
+.vehicle-canvas {
+  height: 250px;
+  width: 100%;
+  margin: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  overflow: visible;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.vehicle-canvas:active {
+  cursor: grabbing;
+}
+
+.studio-halo {
+  position: absolute;
+  inset: 15% 10% 10%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--brand-subtle) 0%, transparent 72%);
+  pointer-events: none;
+}
+
+.cyber-grid-floor {
+  position: absolute;
+  bottom: 12px;
+  left: 5%;
+  right: 5%;
+  height: 90px;
+  background-image: 
+    linear-gradient(to right, var(--brand-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--brand-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  transform: perspective(300px) rotateX(68deg);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Stage container with 3D tilt & continuous auto-rotation */
+.real-stage-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rotating-stage {
+  animation: gsmOrbitStage 10s ease-in-out infinite alternate !important;
+}
+
+@keyframes gsmOrbitStage {
+  0% {
+    transform: perspective(1100px) rotateY(-14deg) rotateX(4deg) translateY(0px);
+  }
+  50% {
+    transform: perspective(1100px) rotateY(0deg) rotateX(1deg) translateY(-5px);
+  }
+  100% {
+    transform: perspective(1100px) rotateY(16deg) rotateX(-4deg) translateY(0px);
+  }
+}
+
+/* Futuristic Neon Holographic Pedestal */
+.podium-disc {
+  position: absolute;
+  bottom: 22px;
+  width: 320px;
+  height: 85px;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.podium-ring-outer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--brand);
+  box-shadow: 0 0 32px var(--brand-glow), inset 0 0 24px var(--brand-glow);
+  transform: rotateX(72deg);
+}
+
+.podium-ring-dashed {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--brand);
+  opacity: 0.85;
+  transform: rotateX(72deg);
+  animation: rotateDashed 16s linear infinite;
+}
+
+@keyframes rotateDashed {
+  from { transform: rotateX(72deg) rotateZ(0deg); }
+  to { transform: rotateX(72deg) rotateZ(360deg); }
+}
+
+.podium-ring-inner {
+  position: absolute;
+  inset: 26px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--brand-subtle) 0%, transparent 75%);
+  border: 1px solid var(--brand-border);
+  transform: rotateX(72deg);
+}
+
+.podium-glow-center {
+  position: absolute;
+  inset: 40px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--brand) 0%, transparent 70%);
+  opacity: 0.65;
+  filter: blur(8px);
+  transform: rotateX(72deg);
+}
+
+/* Hologram Scanning Beam */
+.hologram-scanner {
+  position: absolute;
+  top: 15%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--brand) 50%, transparent 100%);
+  box-shadow: 0 0 16px var(--brand-glow);
+  animation: scanLine 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.8;
+}
+
+@keyframes scanLine {
+  0% { top: 15%; opacity: 0; }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.9; }
+  100% { top: 78%; opacity: 0; }
+}
+
+/* PURE TRANSPARENT CUTOUT VEHICLE (NO BOX, NO PHOTO FRAME!) */
+.vehicle-image-wrapper {
+  position: relative;
+  z-index: 8;
+  width: 100%;
+  max-width: 330px;
+  height: 185px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(35px);
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
+}
+
+.vehicle-real-photo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain !important;
+  background: transparent !important;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 0 16px var(--brand-glow));
+}
+
+/* Glassy floor reflection */
+.vehicle-reflection {
+  position: absolute;
+  bottom: 8px;
+  width: 300px;
+  height: 65px;
+  overflow: hidden;
+  opacity: 0.22;
+  transform: rotateX(180deg) scaleY(0.6) translateY(12px);
+  filter: blur(2.5px);
+  pointer-events: none;
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent 85%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent 85%);
+}
+
+.vehicle-reflection img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Telemetry Badges */
+.telemetry-badges {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(12px);
+  background: var(--bg-glass);
+  border: 1px solid var(--brand-border);
+  color: var(--text-heading);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.telemetry-chip svg {
+  color: var(--brand);
+}
+
+.scene-caption {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line-color);
+  color: var(--text-muted);
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 10px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+}
+
+/* Vehicle Selector Tabs */
+.vehicle-pagination {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.vehicle-pagination button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--line-color);
+  color: var(--text-sub);
+  border-radius: 14px;
+  padding: 10px 8px;
+  font-weight: 700;
+  font-size: 12.5px;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.vehicle-pagination button:hover {
+  border-color: var(--brand-border);
+  color: var(--text-heading);
+}
+
+.vehicle-pagination button.selected {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 4px 18px var(--brand-glow);
+  transform: translateY(-2px);
+}
+
+.tab-vehicle-thumb {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Vehicle Specs */
+.vehicle-specs {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  margin: 12px 0 14px;
+  border-radius: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+}
+
+.vehicle-specs > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.vehicle-specs svg {
+  color: var(--brand);
+}
+
+/* Actions Row (Skills.sh Luxury Buttons) */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-spring);
+  border: none;
+}
+
+.button.primary {
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  box-shadow: 0 4px 20px var(--brand-glow);
+}
+
+.button.primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 26px var(--brand-glow);
+}
+
+.button.primary:active {
+  transform: scale(0.97);
+}
+
+.button.secondary {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--brand-border);
+  color: var(--brand);
+  box-shadow: inset 0 0 12px var(--brand-subtle);
+}
+
+.button.secondary:hover {
+  border-color: var(--brand);
+  color: var(--text-heading);
+  transform: translateY(-2px);
+}
+
+.button.secondary:active {
+  transform: scale(0.97);
+}
+
+/* Expandable specs grid */
+.vehicle-details {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.details-header strong {
+  font-size: 13px;
+  color: var(--text-heading);
+}
+
+.co2-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 3px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.vehicle-details p {
+  font-size: 12.5px;
+  color: var(--text-sub);
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.specs-grid-2026 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.spec-card {
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.spec-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.spec-val {
+  font-size: 12px;
+  color: var(--text-heading);
+}
+
+/* --------------------------------------------------------------------------
+   ROBOT MASCOT 3D (CHIBI, TRANSPARENT CUTOUT, GENTLE 3D FLOAT, HEAD AVATAR)
+   -------------------------------------------------------------------------- */
+/* Full Chibi Robot Figure (No square background!) */
+.mascot-full-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 10px 0;
+  background: transparent !important;
+}
+
+.mascot-float-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: robotHover3d 4.5s ease-in-out infinite;
+}
+
+@keyframes robotHover3d {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(4deg) rotateY(6deg);
+  }
+}
+
+.mascot-img-full {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 20px var(--brand-glow));
+  background: transparent !important;
+}
+
+.mascot-ground-shadow {
+  width: 80px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--brand-glow) 0%, transparent 70%);
+  margin-top: -6px;
+  animation: robotShadowPulse 4.5s ease-in-out infinite;
+}
+
+@keyframes robotShadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(0.75);
+    opacity: 0.2;
+  }
+}
+
+/* Head-and-Neck Only Avatar (For chat bubble AI and header icon) */
+.mascot-avatar-head {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: visible;
+  background: transparent !important;
+}
+
+.mascot-img-head {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px var(--brand-glow));
+  animation: robotHeadBreathe 3s ease-in-out infinite;
+  background: transparent !important;
+}
+
+@keyframes robotHeadBreathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.04); }
+}
+
+.mascot-head-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 1.5px solid var(--brand);
+  opacity: 0.55;
+  animation: ringPulseHead 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ringPulseHead {
+  0%, 100% { transform: scale(0.95); opacity: 0.4; }
+  50% { transform: scale(1.12); opacity: 0.8; }
+}
+
+/* --------------------------------------------------------------------------
+   CHATBOT ASSISTANT (HIGH TECH GALAXY CYBER STYLING)
+   -------------------------------------------------------------------------- */
+.chat-dialog {
+  border: none;
+  background: transparent;
+  padding: 0;
+  max-width: 580px;
+  width: 100%;
+  margin: auto;
+}
+
+.chat-dialog::backdrop {
+  background: rgba(0, 5, 8, 0.75);
+  backdrop-filter: blur(10px);
+}
+
+.chat-shell {
+  background: var(--bg-shell);
+  border: 1.5px solid var(--brand-border);
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px var(--brand-glow);
+  display: flex;
+  flex-direction: column;
+  height: 84vh;
+  max-height: 720px;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--line-color);
+  backdrop-filter: blur(20px);
+}
+
+.chat-header > div {
+  flex: 1;
+}
+
+.chat-header strong {
+  display: block;
+  font-size: 15px;
+  color: var(--text-heading);
+}
+
+.chat-header small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--brand);
+}
+
+.chat-header small i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Chat Intro Greeting */
+.chat-intro {
+  text-align: center;
+  padding: 10px 0 20px;
+}
+
+.chat-intro h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 12px 0 6px;
+  line-height: 1.3;
+}
+
+.chat-intro p {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0 auto 16px;
+  max-width: 280px;
+}
+
+/* Prompt suggestions with skills.sh aesthetic */
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--brand-border);
+  color: var(--text-main);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  transition: all var(--transition-smooth);
+  cursor: pointer;
+}
+
+.suggestions button > svg:first-child {
+  color: var(--brand);
+}
+
+.suggestions button:hover {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--text-heading);
+  transform: translateX(3px);
+  box-shadow: 0 4px 14px var(--brand-glow);
+}
+
+/* Message bubbles */
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message.ai > div {
+  background: var(--bg-card);
+  border: 1px solid var(--brand-border);
+  color: var(--text-main);
+  border-radius: 18px 18px 18px 4px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  max-width: 82%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message.user > div {
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  font-weight: 600;
+  border-radius: 18px 18px 4px 18px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  max-width: 82%;
+  box-shadow: 0 4px 20px var(--brand-glow);
+}
+
+/* Chat Input Bar */
+.chat-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 18px;
+  margin: 12px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  border-radius: 99px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.chat-input:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 22px var(--brand-glow);
+}
+
+.chat-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--text-heading);
+}
+
+.chat-input input::placeholder {
+  color: var(--text-muted);
+}
+
+.send-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  border: none;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 12px var(--brand-glow);
+  cursor: pointer;
+  transition: all var(--transition-spring);
+}
+
+.send-button:hover {
+  transform: scale(1.1);
+}
+
+/* Bottom Floating Assistant Card & Banner */
+.assistant-invitation {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(10, 23, 34, 0.9) 0%, rgba(2, 132, 199, 0.2) 100%);
+  border: 1px solid var(--brand-border);
+  box-shadow: var(--shadow-subtle);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.assistant-invitation:hover {
+  border-color: var(--brand);
+  box-shadow: 0 0 24px var(--brand-glow);
+  transform: translateY(-2px);
+}
+
+.assistant-invitation span {
+  flex: 1;
+}
+
+.assistant-invitation strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-heading);
+}
+
+.assistant-invitation small {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.assistant-invitation > svg {
+  color: var(--brand);
+}
+
+/* Eco Section & Offers */
+.eco-section,
+.offer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-color);
+  box-shadow: var(--shadow-subtle);
+}
+
+.eco-icon,
+.offer-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.eco-section h3,
+.offer h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 2px 0 4px;
+}
+
+.eco-section p,
+.offer p {
+  font-size: 12.5px;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.offer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px var(--brand-glow);
+  transition: all var(--transition-spring);
+}
+
+.offer button:hover {
+  transform: scale(1.06);
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 680px;
+  height: 72px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--line-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 30;
+}
+
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all var(--transition-smooth);
+}
+
+.bottom-nav a.active {
+  color: var(--brand);
+}
+
+.bottom-nav a.active span {
+  filter: drop-shadow(0 0 8px var(--brand-glow));
+}
+
+.home-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+/* ==========================================================================
+   GSM TRIP COCKPIT & LIVE RADAR TRACKING SYSTEM (AUTHENTIC GSM LOGIC)
+   ========================================================================== */
+.gsm-trip-cockpit {
+  padding-bottom: 90px;
+}
+
+.radar-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-top: 4px;
+}
+
+.spin-slow {
+  animation: spinSlow 6s linear infinite;
+}
+
+/* Pre-booking Panel */
+.prebooking-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.route-select-box {
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  border-radius: 20px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.route-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.point-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.point-dot.pickup {
+  background: var(--brand);
+  box-shadow: 0 0 10px var(--brand);
+}
+
+.point-dot.dest {
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+}
+
+.route-divider {
+  width: 2px;
+  height: 14px;
+  background: var(--line-color);
+  margin-left: 5px;
+}
+
+.point-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.point-info small {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand);
+  letter-spacing: 0.5px;
+}
+
+.point-info strong {
+  font-size: 14px;
+  color: var(--text-heading);
+}
+
+.point-info span {
+  font-size: 11.5px;
+  color: var(--text-sub);
+}
+
+/* Quick Destination Carousel */
+.quick-dest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-dest-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-dest-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.quick-dest-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.dest-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.dest-chip svg {
+  color: var(--brand);
+}
+
+.dest-chip small {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.dest-chip:hover {
+  border-color: var(--brand-border);
+  background: var(--brand-subtle);
+  transform: translateY(-2px);
+}
+
+.dest-chip.selected {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 12px var(--brand-glow);
+}
+
+/* Vehicle Tier Selection Cards */
+.service-tier-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tier-header-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.vehicle-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vehicle-tier-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--line-color);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.vehicle-tier-card:hover {
+  border-color: var(--brand-border);
+  transform: translateY(-2px);
+}
+
+.vehicle-tier-card.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.12) 0%, rgba(2, 132, 199, 0.16) 100%);
+  border-color: var(--brand);
+  box-shadow: 0 0 20px var(--brand-glow);
+}
+
+.tier-img-box {
+  width: 64px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tier-vehicle-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.tier-main-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tier-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tier-name-row strong {
+  font-size: 13.5px;
+  color: var(--text-heading);
+}
+
+.tier-eta {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-subtle);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.tier-main-info p {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin: 2px 0 4px;
+}
+
+.tier-tech-specs {
+  display: flex;
+  gap: 6px;
+}
+
+.tier-co2 {
+  font-size: 10px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.tier-battery {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-subtle);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.tier-price-box {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tier-price {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.tier-discount {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* In-cabin comfort preferences */
+.in-cabin-preferences {
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pref-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.pref-label svg {
+  color: var(--brand);
+}
+
+.temp-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.temp-stepper button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--line-color);
+  color: var(--text-heading);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.temp-stepper strong {
+  font-size: 13px;
+  color: var(--text-heading);
+  min-width: 38px;
+  text-align: center;
+}
+
+.pref-toggle {
+  accent-color: var(--brand);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Booking Meta (Promo & Payment) */
+.booking-meta-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.promo-pill,
+.payment-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.promo-pill {
+  cursor: pointer;
+}
+
+.promo-pill svg,
+.payment-pill svg {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.payment-select {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-heading);
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Booking CTAs */
+.booking-cta-section {
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fare-breakdown-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.fare-breakdown-row span {
+  font-size: 12.5px;
+  color: var(--text-sub);
+}
+
+.fare-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.old-fare {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.final-fare {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--brand);
+}
+
+.cta-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cta-book-now {
+  font-size: 15px;
+  padding: 14px;
+}
+
+.cta-demo-trip {
+  font-size: 12.5px;
+  padding: 10px;
+}
+
+/* ===================================================================
+   ACTIVE TRIP & STEPPER & COCKPIT TELEMETRY
+   =================================================================== */
+.active-trip-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trip-stepper {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 6px;
+  position: relative;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex: 1;
+  position: relative;
+}
+
+.stepper-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--line-color);
+  z-index: 1;
+}
+
+.stepper-step.active:not(:last-child)::after {
+  background: var(--brand);
+}
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--line-color);
+  display: grid;
+  place-items: center;
+  color: var(--brand-on);
+  position: relative;
+  z-index: 2;
+  transition: all var(--transition-smooth);
+}
+
+.stepper-step.active .step-dot {
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 0 10px var(--brand-glow);
+}
+
+.stepper-step.current span {
+  color: var(--brand);
+}
+
+.trip-status-header {
+  text-align: center;
+}
+
+.trip-status-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 4px 0 2px;
+}
+
+.trip-status-header p {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+/* Route Progress Bar */
+.route-progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bg-surface);
+  overflow: hidden;
+  border: 1px solid var(--line-color);
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--brand-gradient);
+  border-radius: 99px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 10px var(--brand-glow);
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+/* Searching Radar Vehicle */
+.searching-radar-cockpit {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  box-shadow: 0 0 20px var(--brand-glow);
+}
+
+.searching-radar-vehicle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.searching-vehicle-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+}
+
+.searching-ping-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--brand);
+  animation: pingRing 2.4s ease-out infinite;
+}
+
+.searching-ping-ring.delay {
+  animation-delay: 1.2s;
+}
+
+@keyframes pingRing {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.searching-text-wrap strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-heading);
+}
+
+.searching-text-wrap small {
+  font-size: 11.5px;
+  color: var(--text-sub);
+}
+
+/* Cockpit Telemetry Grid */
+.cockpit-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 12px 0 6px;
+}
+
+.telemetry-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+}
+
+.telemetry-box svg {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.telemetry-box small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.telemetry-box strong {
+  font-size: 12.5px;
+  color: var(--text-heading);
+}
+
+.eco-green {
+  color: #10b981 !important;
+}
+
+.contact-driver-actions {
+  margin-top: 10px;
+}
+
+.simulation-stepper-control {
+  margin: 6px 0;
+}
+
+.next-stage-btn {
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 13px;
+  box-shadow: 0 4px 18px var(--brand-glow);
+}
+
+/* Completed Trip Panel */
+.completed-trip-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.complete-banner {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.complete-check-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #00f5d4 100%);
+  color: #021a18;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+  box-shadow: 0 0 24px rgba(0, 245, 212, 0.4);
+}
+
+.complete-banner h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0 0 4px;
+}
+
+.complete-banner p {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.fare-dd {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brand) !important;
+}
+
+.stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.stars-row button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform var(--transition-spring);
+}
+
+.stars-row button:hover {
+  transform: scale(1.2);
+}
+
+.stars-label {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.feedback-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.feedback-tag {
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.feedback-tag.selected {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 10px var(--brand-glow);
+}
+
+/* Modals */
+.modal-cta-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mock-call-dialog {
+  text-align: center;
+  padding: 10px 0 16px;
+}
+
+.call-avatar-wrap {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.call-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+  border: 2px solid var(--brand);
+}
+
+.call-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--brand);
+  animation: pingRing 2s ease-out infinite;
+}
+
+.mock-call-dialog h3 {
+  font-size: 17px;
+  color: var(--text-heading);
+  margin: 0 0 2px;
+}
+
+.call-subtitle {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin: 0 0 10px;
+}
+
+.call-status-indicator {
+  font-size: 12.5px;
+  color: var(--brand);
+  margin-bottom: 20px;
+}
+
+.call-controls-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.call-ctrl-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  color: var(--text-main);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.call-action-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+.call-action-btn.answer {
+  background: #10b981;
+  box-shadow: 0 0 16px #10b981;
+}
+
+.call-action-btn.end {
+  background: #ef4444;
+  box-shadow: 0 0 16px #ef4444;
+}
+
+.quick-messages-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.quick-msg-chip {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  color: var(--text-main);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.quick-msg-chip:hover {
+  border-color: var(--brand-border);
+  background: var(--brand-subtle);
+  color: var(--brand);
+}
+
+.support-hotline-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--brand-border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  margin: 14px 0;
+}
+
+.support-hotline-card small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.support-hotline-card strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--brand);
+  margin: 4px 0;
+}
+
+.support-hotline-card span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   OPEN TRIP SCREEN: FULL PAGE SCROLLING & LARGE ROUTE / PRICE DISPLAY
+   ========================================================================== */
+.trip-screen {
+  min-height: 100vh !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: visible !important;
+  padding: 16px 20px 120px !important;
+  gap: 16px !important;
+}
+
+.trip-screen .trip-sheet {
+  position: static !important;
+  border-radius: 26px !important;
+  padding: 22px !important;
+  margin-top: 0 !important;
+  box-shadow: var(--shadow-elevated) !important;
+  overflow: visible !important;
+  max-height: none !important;
+  flex: none !important;
+  width: 100% !important;
+}
+
+/* Open, Spacious Route Select Box */
+.route-select-box {
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  border-radius: 22px !important;
+  padding: 20px 22px !important;
+  box-shadow: var(--shadow-subtle) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+.route-point {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+.point-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  margin-top: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.point-dot.pickup {
+  background: var(--brand) !important;
+  box-shadow: 0 0 12px var(--brand) !important;
+}
+
+.point-dot.dest {
+  background: #10b981 !important;
+  box-shadow: 0 0 12px #10b981 !important;
+}
+
+.route-divider {
+  width: 2px !important;
+  height: 18px !important;
+  background: var(--brand-border) !important;
+  margin-left: 6px !important;
+  opacity: 0.6;
+}
+
+.point-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  flex: 1 !important;
+}
+
+.point-info small {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--brand) !important;
+  letter-spacing: 0.6px !important;
+}
+
+.point-info strong {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+  line-height: 1.3 !important;
+}
+
+.point-info span {
+  font-size: 12.5px !important;
+  color: var(--text-sub) !important;
+}
+
+/* Open Vehicle Tier Selection */
+.vehicle-tier-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.vehicle-tier-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 16px 20px !important;
+  border-radius: 20px !important;
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--line-color) !important;
+  cursor: pointer !important;
+  transition: all var(--transition-smooth) !important;
+}
+
+.vehicle-tier-card:hover {
+  border-color: var(--brand-border) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+.vehicle-tier-card.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.14) 0%, rgba(2, 132, 199, 0.18) 100%) !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 24px var(--brand-glow) !important;
+}
+
+.tier-img-box {
+  width: 76px !important;
+  height: 50px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+.tier-vehicle-img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35)) !important;
+}
+
+.tier-name-row strong {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+}
+
+.tier-main-info p {
+  font-size: 12px !important;
+  color: var(--text-sub) !important;
+  margin: 3px 0 6px !important;
+}
+
+.tier-price {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: var(--brand) !important;
+}
+
+.tier-discount {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #10b981 !important;
+}
+
+/* Huge Prominent Fare & Booking CTAs */
+.booking-cta-section {
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  border-radius: 22px !important;
+  padding: 20px 22px !important;
+  box-shadow: var(--shadow-elevated) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin-top: 6px !important;
+}
+
+.fare-breakdown-row {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px dashed var(--line-color) !important;
+}
+
+.fare-breakdown-row span {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-sub) !important;
+}
+
+.final-fare {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  color: var(--brand) !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 0 20px var(--brand-glow) !important;
+}
+
+.old-fare {
+  font-size: 14px !important;
+  color: var(--text-muted) !important;
+  text-decoration: line-through !important;
+  margin-right: 8px !important;
+}
+
+.cta-book-now {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  padding: 16px !important;
+  border-radius: 16px !important;
+}
+
+.cta-demo-trip {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+}
+
+/* ==========================================================================
+   HISTORY SCREEN OVERHAUL (HIGH CONTRAST, GALAXY CYBER GLASS, CRYSTAL CLEAR)
+   ========================================================================== */
+.history-screen-pro {
+  padding: 16px 20px 110px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.history-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--brand);
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  padding: 4px 12px;
+  border-radius: 99px;
+  box-shadow: 0 0 14px var(--brand-glow);
+  margin-bottom: 8px;
+}
+
+.history-header-badge svg {
+  color: var(--brand);
+}
+
+/* Eco Carbon Impact Summary Card */
+.history-eco-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16px 14px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  box-shadow: var(--shadow-subtle);
+}
+
+.eco-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  flex: 1;
+}
+
+.eco-stat-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+.eco-stat-val.eco-green {
+  color: #10b981 !important;
+}
+
+.eco-stat-val small {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.eco-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.eco-summary-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--line-color);
+}
+
+/* High Contrast History Search */
+.history-search {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  border-radius: 99px !important;
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  box-shadow: var(--shadow-subtle) !important;
+  transition: all var(--transition-smooth) !important;
+}
+
+.history-search:focus-within {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 20px var(--brand-glow) !important;
+}
+
+.history-search .search-icon {
+  color: var(--brand) !important;
+  flex-shrink: 0;
+}
+
+.history-search input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-heading) !important;
+}
+
+.history-search input::placeholder {
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.clear-search-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--line-color);
+  color: var(--text-sub);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Filter Pills */
+.filter-tabs {
+  display: flex !important;
+  gap: 8px !important;
+  margin: 4px 0 8px !important;
+}
+
+.filter-pill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 99px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--line-color);
+  color: var(--text-sub);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.filter-pill:hover {
+  border-color: var(--brand-border);
+  color: var(--text-heading);
+}
+
+.filter-pill.selected {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 16px var(--brand-glow);
+}
+
+.pill-count {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--bg-surface);
+  color: var(--text-heading);
+}
+
+.filter-pill.selected .pill-count {
+  background: var(--brand);
+  color: var(--brand-on);
+}
+
+/* Group Stack */
+.history-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+.history-group-header h2 {
+  font-size: 13px !important;
+  color: var(--text-heading) !important;
+  margin: 0 !important;
+}
+
+.group-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.history-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* History Card (Luxury Glass & Starlight Border) */
+.history-card {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 16px 18px !important;
+  border-radius: 20px !important;
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--line-color) !important;
+  box-shadow: var(--shadow-subtle) !important;
+  cursor: pointer !important;
+  transition: all var(--transition-smooth) !important;
+  outline: none !important;
+  text-align: left !important;
+}
+
+.history-card:hover {
+  border-color: var(--brand-border) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 18px var(--brand-glow) !important;
+  transform: translateY(-2px) !important;
+}
+
+.history-card:active {
+  transform: scale(0.99) !important;
+}
+
+/* Thumb Box */
+.history-vehicle-thumb-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--brand-border);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.history-vehicle-real-thumb {
+  max-width: 86%;
+  max-height: 86%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+
+/* Main Details */
+.history-main {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.history-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.history-time-badge svg {
+  color: var(--brand);
+}
+
+.history-veh-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-subtle);
+  padding: 1px 7px;
+  border-radius: 99px;
+}
+
+/* Route Flow */
+.history-route-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.route-flow-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-flow-item .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.route-flow-item .dot.pickup {
+  background: var(--brand);
+  box-shadow: 0 0 6px var(--brand);
+}
+
+.route-flow-item .dot.dest {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.route-flow-item .point-name {
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route-flow-connector {
+  width: 1px;
+  height: 6px;
+  background: var(--line-color);
+  margin-left: 3px;
+}
+
+/* Status & Eco Badges */
+.history-bottom-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.status-badge-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.status-badge-modern.completed {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(52, 211, 153, 0.4) !important;
+}
+
+.status-badge-modern.cancelled {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.4) !important;
+}
+
+.eco-saving-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Price Column */
+.history-price-col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.history-fare-num {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  color: var(--brand) !important;
+  letter-spacing: -0.01em !important;
+}
+
+.history-fare-num.cancelled-fare {
+  color: var(--text-muted) !important;
+  text-decoration: line-through !important;
+}
+
+.chevron-link {
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-smooth);
+}
+
+.history-card:hover .chevron-link {
+  transform: translateX(4px);
+}
+
+/* Empty State */
+.empty-history-state {
+  text-align: center;
+  padding: 50px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-history-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-border);
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+
+.empty-history-state h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.empty-history-state p {
+  font-size: 13px;
+  color: var(--text-sub);
+  max-width: 280px;
+  margin: 0;
+}
+
+/* Modal Details Enhancements */
+.history-modal-vehicle-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--brand-border);
+  margin-bottom: 14px;
+}
+
+.history-modal-vehicle-img {
+  width: 90px;
+  height: 55px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+
+.history-modal-vehicle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-modal-vehicle-text strong {
+  font-size: 16px;
+  color: var(--text-heading);
+}
+
+.history-modal-vehicle-text small {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.eco-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 2px 7px;
+  border-radius: 99px;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.history-summary-list .fare-highlight {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: var(--brand) !important;
+}
+
+.booking-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   UNIFIED DARK THEME: TRIP SCREEN MATCHING HOME SCREEN EXACTLY
+   ========================================================================== */
+.screen-header.app-header-unified {
+  height: 76px !important;
+  padding: 0 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  background: var(--bg-glass) !important;
+  border-bottom: 1px solid var(--line-color) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 25 !important;
+}
+
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.header-brand-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.brand-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand);
+  animation: pulseNode 2s ease-in-out infinite alternate;
+}
+
+.screen-header.app-header-unified h1 {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: var(--text-heading) !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.back-nav-btn {
+  background: var(--brand-subtle) !important;
+  border: 1px solid var(--brand-border) !important;
+  color: var(--brand) !important;
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  transition: all var(--transition-smooth) !important;
+}
+
+.back-nav-btn:hover {
+  background: var(--brand) !important;
+  color: var(--brand-on) !important;
+  transform: scale(1.08) !important;
+}
+
+/* Dark Mode Unified Rules for Trip Screen */
+[data-theme="dark"] .gsm-trip-cockpit {
+  background: var(--bg-shell) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .route-map {
+  background: #04090e !important;
+}
+
+[data-theme="dark"] .route-map svg {
+  filter: invert(0.92) hue-rotate(155deg) brightness(0.85) contrast(1.15) !important;
+}
+
+[data-theme="dark"] .route-map text {
+  fill: #4d8f86 !important;
+}
+
+[data-theme="dark"] .route-map .road-label {
+  fill: #387067 !important;
+}
+
+[data-theme="dark"] .route-map .river-label {
+  fill: #00f5d4 !important;
+}
+
+[data-theme="dark"] .map-label.destination {
+  background: var(--bg-surface) !important;
+  color: var(--brand) !important;
+  border: 1px solid var(--brand-border) !important;
+}
+
+[data-theme="dark"] .map-watermark {
+  background: rgba(4, 10, 15, 0.75) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--line-color) !important;
+}
+
+[data-theme="dark"] .trip-map-badge {
+  background: rgba(4, 10, 15, 0.85) !important;
+  border: 1px solid var(--brand-border) !important;
+  color: var(--text-heading) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .ask-trip-ai {
+  background: rgba(5, 13, 19, 0.9) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  color: var(--brand) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 16px var(--brand-glow) !important;
+}
+
+[data-theme="dark"] .trip-sheet {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .route-select-box {
+  background: var(--bg-card) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 20px -5px rgba(0, 245, 212, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="dark"] .dest-chip {
+  background: var(--bg-surface) !important;
+  border-color: var(--line-color) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dest-chip:hover {
+  background: var(--brand-subtle) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+
+[data-theme="dark"] .dest-chip.selected {
+  background: var(--brand-subtle) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+  box-shadow: 0 0 16px var(--brand-glow) !important;
+}
+
+[data-theme="dark"] .vehicle-tier-card {
+  background: var(--bg-card) !important;
+  border-color: var(--line-color) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="dark"] .vehicle-tier-card:hover {
+  border-color: var(--brand-border) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px var(--brand-glow) !important;
+}
+
+[data-theme="dark"] .vehicle-tier-card.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.14) 0%, rgba(2, 132, 199, 0.22) 100%) !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 28px var(--brand-glow) !important;
+}
+
+[data-theme="dark"] .in-cabin-preferences {
+  background: var(--bg-surface) !important;
+  border-color: var(--line-color) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+[data-theme="dark"] .temp-stepper button {
+  background: var(--bg-elevated) !important;
+  border-color: var(--brand-border) !important;
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .promo-pill,
+[data-theme="dark"] .payment-pill {
+  background: var(--bg-surface) !important;
+  border-color: var(--line-color) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .payment-select {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .payment-select option {
+  background: #0a1722 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .booking-cta-section {
+  background: var(--bg-card) !important;
+  border-color: var(--brand-border) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 24px var(--brand-glow) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="dark"] .searching-radar-cockpit {
+  background: var(--bg-card) !important;
+  border-color: var(--brand-border) !important;
+  box-shadow: 0 0 30px var(--brand-glow) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="dark"] .driver-card {
+  background: transparent !important;
+  border-top: 1px solid var(--line-color) !important;
+  border-bottom: 1px solid var(--line-color) !important;
+}
+
+[data-theme="dark"] .driver-photo-round {
+  border: 2px solid var(--brand) !important;
+}
+
+[data-theme="dark"] .plate strong {
+  background: var(--bg-elevated) !important;
+  color: var(--brand) !important;
+  border: 1px solid var(--brand-border) !important;
+}
+
+[data-theme="dark"] .telemetry-box {
+  background: var(--bg-elevated) !important;
+  border-color: var(--line-color) !important;
+}
+
+[data-theme="dark"] .telemetry-box strong {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .trip-payment {
+  border-color: var(--line-color) !important;
+}
+
+[data-theme="dark"] .trip-payment strong {
+  color: var(--brand) !important;
+}
+
+[data-theme="dark"] .summary-list {
+  background: var(--bg-surface) !important;
+  border-color: var(--line-color) !important;
+}
+
+[data-theme="dark"] .summary-list dt {
+  color: var(--text-sub) !important;
+}
+
+[data-theme="dark"] .summary-list dd {
+  color: var(--text-heading) !important;
+}
+
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal {
+  background: var(--bg-shell) !important;
+  border: 1.5px solid var(--brand-border) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px var(--brand-glow) !important;
+}
+
+[data-theme="dark"] .modal-header h2 {
+  color: var(--text-heading) !important;
+}
+
+
+

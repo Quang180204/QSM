@@ -1,0 +1,296 @@
+{
+  "name": "projects/13011488694489006533",
+  "title": "GSM AI: Trợ Lý Đặt Xe",
+  "visibility": "PRIVATE",
+  "createTime": "2026-10-06T16:25:10.893379Z",
+  "updateTime": "2026-10-06T16:50:30.109435Z",
+  "projectType": "TEXT_TO_UI_PRO",
+  "thumbnailScreenshot": {
+    "name": "projects/13011488694489006533/screens/85af2ce07de0463abcf514ed6b724f28/fileEntries/screenshot",
+    "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1UN-VNwRXVHUxpuFhWDRDdb4P6OM1bqqzDhNfpP_obvRqFQUb1Lq0jmN6oZ7EX1FMfmW6I42C26xZqXZBUEMvRb7w1tPvZDcy2xqjliOrZyNJCbdqb843JIPqdq0nq0rNB1-O45OFltLliKraILXebsTQkIfn-4bhHJhLhPzZT7GGPyyj6bfm8_Za4N0Pa_m51y1yxSuGHas_7rrMlI5DUc9D7D9I9GspJrCd9FGoR4"
+  },
+  "origin": "STITCH",
+  "deviceType": "MOBILE",
+  "designTheme": {
+    "colorMode": "LIGHT",
+    "font": "BE_VIETNAM_PRO",
+    "roundness": "ROUND_FULL",
+    "customColor": "#00b4a5",
+    "headlineFont": "BE_VIETNAM_PRO",
+    "bodyFont": "BE_VIETNAM_PRO",
+    "labelFont": "BE_VIETNAM_PRO",
+    "namedColors": {
+      "on_tertiary_fixed_variant": "#005048",
+      "tertiary_container": "#00b4a3",
+      "on_secondary_container": "#2e6d5f",
+      "error_container": "#ffdad6",
+      "on_primary_fixed_variant": "#005049",
+      "surface_container_highest": "#d3e7e2",
+      "background": "#eafef8",
+      "on_tertiary_container": "#003f38",
+      "inverse_primary": "#4fdbcb",
+      "surface_container": "#def2ed",
+      "outline_variant": "#bbcac6",
+      "surface_variant": "#d3e7e2",
+      "on_surface": "#0d1f1c",
+      "surface_container_high": "#d9ece7",
+      "primary": "#006a61",
+      "secondary_container": "#acedda",
+      "on_secondary_fixed_variant": "#065043",
+      "surface_container_low": "#e4f8f3",
+      "surface_tint": "#006a61",
+      "on_error_container": "#93000a",
+      "primary_fixed_dim": "#4fdbcb",
+      "surface_container_lowest": "#ffffff",
+      "on_error": "#ffffff",
+      "primary_fixed": "#70f8e7",
+      "secondary": "#29695b",
+      "on_secondary_fixed": "#00201a",
+      "on_secondary": "#ffffff",
+      "tertiary_fixed": "#41fce6",
+      "secondary_fixed": "#afefdd",
+      "secondary_fixed_dim": "#94d3c1",
+      "tertiary": "#006a60",
+      "tertiary_fixed_dim": "#00deca",
+      "surface_dim": "#cbded9",
+      "surface_bright": "#eafef8",
+      "inverse_on_surface": "#e1f5f0",
+      "on_surface_variant": "#3c4947",
+      "on_tertiary_fixed": "#00201c",
+      "error": "#ba1a1a",
+      "on_tertiary": "#ffffff",
+      "on_primary_container": "#003f39",
+      "on_primary": "#ffffff",
+      "surface": "#eafef8",
+      "outline": "#6c7a77",
+      "on_primary_fixed": "#00201d",
+      "inverse_surface": "#233430",
+      "on_background": "#0d1f1c",
+      "primary_container": "#00b4a5"
+    },
+    "designMd": "---\nname: Pure Electric Mobility\ncolors:\n  surface: '#eafef8'\n  surface-dim: '#cbded9'\n  surface-bright: '#eafef8'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#e4f8f3'\n  surface-container: '#def2ed'\n  surface-container-high: '#d9ece7'\n  surface-container-highest: '#d3e7e2'\n  on-surface: '#0d1f1c'\n  on-surface-variant: '#3c4947'\n  inverse-surface: '#233430'\n  inverse-on-surface: '#e1f5f0'\n  outline: '#6c7a77'\n  outline-variant: '#bbcac6'\n  surface-tint: '#006a61'\n  primary: '#006a61'\n  on-primary: '#ffffff'\n  primary-container: '#00b4a5'\n  on-primary-container: '#003f39'\n  inverse-primary: '#4fdbcb'\n  secondary: '#29695b'\n  on-secondary: '#ffffff'\n  secondary-container: '#acedda'\n  on-secondary-container: '#2e6d5f'\n  tertiary: '#006a60'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#00b4a3'\n  on-tertiary-container: '#003f38'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#70f8e7'\n  primary-fixed-dim: '#4fdbcb'\n  on-primary-fixed: '#00201d'\n  on-primary-fixed-variant: '#005049'\n  secondary-fixed: '#afefdd'\n  secondary-fixed-dim: '#94d3c1'\n  on-secondary-fixed: '#00201a'\n  on-secondary-fixed-variant: '#065043'\n  tertiary-fixed: '#41fce6'\n  tertiary-fixed-dim: '#00deca'\n  on-tertiary-fixed: '#00201c'\n  on-tertiary-fixed-variant: '#005048'\n  background: '#eafef8'\n  on-background: '#0d1f1c'\n  surface-variant: '#d3e7e2'\ntypography:\n  display:\n    fontFamily: Be Vietnam Pro\n    fontSize: 44px\n    fontWeight: '700'\n    lineHeight: 52px\n    letterSpacing: -0.03em\n  display-mobile:\n    fontFamily: Be Vietnam Pro\n    fontSize: 34px\n    fontWeight: '700'\n    lineHeight: 42px\n    letterSpacing: -0.02em\n  headline-lg:\n    fontFamily: Be Vietnam Pro\n    fontSize: 32px\n    fontWeight: '600'\n    lineHeight: 40px\n    letterSpacing: -0.02em\n  headline-lg-mobile:\n    fontFamily: Be Vietnam Pro\n    fontSize: 26px\n    fontWeight: '600'\n    lineHeight: 34px\n    letterSpacing: -0.015em\n  headline-md:\n    fontFamily: Be Vietnam Pro\n    fontSize: 22px\n    fontWeight: '600'\n    lineHeight: 30px\n    letterSpacing: -0.01em\n  headline-sm:\n    fontFamily: Be Vietnam Pro\n    fontSize: 18px\n    fontWeight: '600'\n    lineHeight: 26px\n  body-lg:\n    fontFamily: Be Vietnam Pro\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 24px\n  body-md:\n    fontFamily: Be Vietnam Pro\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 22px\n  body-sm:\n    fontFamily: Be Vietnam Pro\n    fontSize: 12px\n    fontWeight: '400'\n    lineHeight: 18px\n  label-lg:\n    fontFamily: Be Vietnam Pro\n    fontSize: 14px\n    fontWeight: '600'\n    lineHeight: 20px\n    letterSpacing: 0.01em\n  label-md:\n    fontFamily: Be Vietnam Pro\n    fontSize: 12px\n    fontWeight: '600'\n    lineHeight: 16px\n    letterSpacing: 0.02em\n  label-sm:\n    fontFamily: Be Vietnam Pro\n    fontSize: 10px\n    fontWeight: '700'\n    lineHeight: 14px\n    letterSpacing: 0.04em\nrounded:\n  sm: 0.5rem\n  DEFAULT: 1rem\n  md: 1.5rem\n  lg: 2rem\n  xl: 3rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  gutter-sm: 0.75rem\n  gutter-lg: 1.5rem\n  margin: 1rem\n  margin-md: 1.5rem\n  margin-lg: 2.5rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2rem\n---\n\n## Brand & Style\n\nThis design system channels sustainable urban mobility through an ultra-clean, high-efficiency digital interface tailored for next-generation smart ride-hailing and multimodal green transit. Rooted in contemporary Vietnamese design sensibilities, the aesthetic embodies calm environmental consciousness paired with sharp technical precision.\n\nThe style merges **Modern Precision** with **Atmospheric Light & Tonal Surfaces**:\n- **Environmental Clarity:** Predominantly clean, breathable light canvases layered with cool mint-tinted surfaces that feel refreshing rather than clinical.\n- **Electric Precision:** High-chroma cyan and electric teal accents deliver vital ride status updates, vehicle paths, battery telemetry, and immediate booking feedback without sensory clutter.\n- **Tactile Trust:** Silky pill badges, micro-sheen containers, and fluid transitions communicate safety, electric quietude, and premium fleet craftsmanship.\n- **Voice & Tone:** Dynamic, respectful, forward-looking, and efficient. Interactions emphasize zero-emission benefits, punctuality, and seamless route progress.\n\n## Colors\n\nThe palette balances clean emerald-cyan hues with deep mineral charcoals, ensuring optimal contrast and high glanceability in dynamic mobile environments:\n\n- **Primary (`#00B4A5` GSM Teal):** The brand’s signature hue. Applied to primary booking CTAs, current vehicle telemetry, confirmed route tracks, and prominent action states. Use `#009688` for focused or pressed states requiring tactile depth.\n- **Secondary (`#004D40` Deep Teal):** Provides authoritative contrast. Utilized for floating map bottom-sheet headers, trip summary banners, high-tier vehicle category badges (e.g., Luxury EV), and focused navigation markers.\n- **Tertiary (`#00E5D0` Electric Cyan Accent):** High-energy electric indicator. Reserved for real-time AI dispatch pulses, active GPS vehicle blips, eco-savings milestones, and micro-interaction highlights.\n- **Neutral & Typography (`#1A2B28` Dark Charcoal):** A deep evergreen charcoal used for primary headlines and data fields, replacing harsh pure blacks with organic depth. Paired with `#64748B` (Cool Slate) for secondary metadata and arrival timings.\n- **Surface & Backgrounds:** The base canvas sits at `#F8FAFC`, stepping smoothly into `#EDF7F6` and `#E0F2F1` (Soft Mint) for card containers, trip receipts, and route progress segments.\n- **Feedback & Alerts:** `#EF4444` (Coral Red) marks cancellations, critical vehicle alerts, and form invalidations, cleanly distinguished from the cool green-spectrum palette.\n\n## Typography\n\nThe type hierarchy relies on **Be Vietnam Pro** across all touchpoints, ensuring native rendering for Vietnamese diacritics, legible micro-numerals on live maps, and confident corporate clarity.\n\n- **Numerals & Ride Metrics:** ETAs, fare estimates, and plate identifiers leverage medium-to-bold weights with tight tracking (`-0.02em`) to guarantee quick apprehension under sunlight and mobile vibration.\n- **Editorial Diacritics:** Caret, horn, and hook glyphs maintain strict vertical clearance without clashing with uppercase ascenders, reinforced through generous line heights on mobile headline tiers.\n- **Hierarchy Mapping:**\n  - `display` & `display-mobile`: Used for high-impact eco-impact stats and onboarding splash hooks.\n  - `headline-lg` / `headline-md`: Vehicle tier pickers (GreenCar, Luxury, Bike), destination headings, and confirmation dialogues.\n  - `body-md` / `body-sm`: Driver dispatch details, pickup instructions, and transaction breakdowns.\n  - `label-sm` (Uppercase): Battery percentages, real-time vehicle plates, and eco-offset certificates.\n\n## Layout & Spacing\n\nThe structural layout uses an adaptive fluid column framework calibrated for one-handed mobile ergonomic zones while extending predictably across tablet dispatch consoles and web portals.\n\n- **Mobile Viewport (up to 640px):** 4-column layout with `margin: 1rem` and `gutter: 1rem`. Floating sheets anchor within easy thumb range at the screen bottom, leaving the top 45% unobstructed for the live vector map.\n- **Tablet / In-Cab Dashboard (641px - 1024px):** 8-column layout with `margin-md: 1.5rem`. Splits into a persistent split-pane: map telemetry sits left, trip details and rider profile sit right.\n- **Desktop / Dispatch Portal (1025px+):** 12-column layout with maximum content width of 1280px, centered with `margin-lg: 2.5rem`.\n- **Rhythm Rules:**\n  - `space-xs` (4px) and `space-sm` (8px): Micro-gaps between vehicle icons, ETA chips, and plate labels.\n  - `space-md` (16px): Standard internal card padding and vertical gap between modular form elements.\n  - `space-lg` (24px): Separation between vehicle class selection tiers and checkout panels.\n  - `space-xl` (32px): Outer margins for modal popovers and bottom sheet sheet-lift animations.\n\n## Elevation & Depth\n\nVisual hierarchy relies on crisp surface layering combined with ambient tinted shadows that echo the teal brand spectrum, avoiding murky drop shadows.\n\n- **Base Layer (Ground - Level 0):** Vector map views and base canvases rendered at `#F8FAFC`.\n- **Tonal Layer 1 (Surface Cards - Level 1):** Background cards, address pickers, and trip histories sit on `#FFFFFF` with a faint border (`1px solid #EDF7F6`) and a soft ambient tint: `box-shadow: 0 4px 16px -2px rgba(0, 77, 64, 0.04)`.\n- **Raised Interactive Layer (Level 2):** Hovered vehicle cards, secondary pills, and active filter selections gain presence via `box-shadow: 0 8px 24px -4px rgba(0, 180, 165, 0.12)`.\n- **Floating Overlays (Level 3):** Floating action buttons (re-center map, emergency SOS), live driver tracking pins, and primary CTA footers employ `box-shadow: 0 12px 32px -4px rgba(0, 77, 64, 0.16)`.\n- **Backdrop Frost (Glass Accent):** Floating top navigation bars and persistent audio ride-status controls utilize frosted glass backing: `background: rgba(255, 255, 255, 0.82)` paired with `backdrop-filter: blur(12px)` and a subtle `1px solid rgba(224, 242, 241, 0.6)` baseline border.\n\n## Shapes\n\nThe design system embraces a **Pill-shaped (Level 3)** geometry, communicating aerodynamic motion, organic battery contours, and accessible friendliness:\n\n- **Buttons & Chips:** Full pill borders (`border-radius: 9999px`) across all primary call-to-actions, category tags, ETA estimates, and trip status indicators.\n- **Cards & Bottom Sheets:** Structured containers use `rounded-xl` (48px / 3rem) for mobile drawer top corners, providing a smooth organic transition over maps, and `rounded-lg` (32px / 2rem) for ride selector cards.\n- **Input Fields & Search Bars:** Complete pill outlines for search destinations and promo codes to maintain approachable fluidity.\n- **Badges & Icons:** Circular avatar frames and rounded pill badges with minimal 2px padding offsets.\n\n## Components\n\n### Buttons\n- **Primary Action (Book Ride):** Full-bleed or pill-shaped, colored in `#00B4A5` with white typography (`label-lg`). Hover shifts to `#009688`; pressed state reduces scale to 0.98.\n- **Secondary (Schedule / Ride Details):** Frosted mint surface (`#E0F2F1`) with `#004D40` label. No hard border.\n- **Tertiary / Ghost:** Transparent base with `#00B4A5` label and icon, used for promo codes and route edits.\n- **Safety / SOS:** High-contrast `#EF4444` pill with pure white text and an ambient red halo shadow.\n\n### Chips & Badges\n- **Vehicle Class Chip:** Pill container with an EV icon, vehicle name, and dynamic ETA (`2 min away`). Selected state switches from `#F8FAFC` to `#EDF7F6` with an active `#00B4A5` 1.5px perimeter line.\n- **Green Offset Badge:** Tiny pill badge in `#004D40` with `#00E5D0` text showing CO2 reduction (`-1.2 kg CO₂`).\n\n### Input Fields & Address Selectors\n- **Pickup & Destination Nodes:** Dual pill-stack wrapped in a `#FFFFFF` container. Pickup dot styled in `#00B4A5`, Destination pin in `#004D40`, connected by a dashed 2px vertical guide.\n- **State Styling:** Default state features a cool slate placeholder (`#64748B`). Active focus triggers a 2px `#00B4A5` ring with an ambient mint glow (`rgba(0, 180, 165, 0.15)`).\n\n### Vehicle Selection Cards\n- **Structure:** Horizontal flex card with EV visual, model title (e.g., VF e34 / VF 8), passenger capacity, pricing, and arrival timing.\n- **Active Selection:** White surface with `#00B4A5` outline, a subtle teal gradient wash (`linear-gradient(180deg, #FFFFFF 0%, #EDF7F6 100%)`), and a prominent radio dot.\n\n### Lists & Activity Feed\n- **Trip History Item:** Borderless clean rows separated by `0.5px` dividers in `#EDF7F6`. Left side showcases an electric vehicle route glyph; right side displays cost in Vietnamese Đồng (`₫`) and date metadata.\n\n### Checkboxes & Radios\n- **Radio Buttons (Payment / Service Selection):** Custom circular toggle. Outer circle `#00B4A5`; inner selected pip fills with `#004D40`.\n- **Checkboxes:** Pill-squircle hybrid with an animated `#00B4A5` fill and crisp white checkmark icon.\n\n### Live Telemetry Panel (Specialized Mobility Component)\n- **Driver Card:** Floating bottom-anchored card housing driver photo, license plate (pill-badge with mono-spaced bold numbers), real-time battery level percentage indicator (`#00E5D0`), and quick-action call/chat buttons.",
+    "colorVariant": "FIDELITY",
+    "overridePrimaryColor": "#00b4a5",
+    "overrideSecondaryColor": "#004d40",
+    "overrideTertiaryColor": "#00e5d0",
+    "overrideNeutralColor": "#1a2b28",
+    "spacingScale": 2,
+    "typography": {
+      "body-sm": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "lineHeight": "18px"
+      },
+      "headline-lg-mobile": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "26px",
+        "fontWeight": "600",
+        "lineHeight": "34px",
+        "letterSpacing": "-0.015em"
+      },
+      "label-sm": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "10px",
+        "fontWeight": "700",
+        "lineHeight": "14px",
+        "letterSpacing": "0.04em"
+      },
+      "headline-lg": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "32px",
+        "fontWeight": "600",
+        "lineHeight": "40px",
+        "letterSpacing": "-0.02em"
+      },
+      "display": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "44px",
+        "fontWeight": "700",
+        "lineHeight": "52px",
+        "letterSpacing": "-0.03em"
+      },
+      "headline-sm": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "18px",
+        "fontWeight": "600",
+        "lineHeight": "26px"
+      },
+      "label-lg": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "lineHeight": "20px",
+        "letterSpacing": "0.01em"
+      },
+      "display-mobile": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "34px",
+        "fontWeight": "700",
+        "lineHeight": "42px",
+        "letterSpacing": "-0.02em"
+      },
+      "headline-md": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "22px",
+        "fontWeight": "600",
+        "lineHeight": "30px",
+        "letterSpacing": "-0.01em"
+      },
+      "body-lg": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "24px"
+      },
+      "body-md": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "lineHeight": "22px"
+      },
+      "label-md": {
+        "fontFamily": "Be Vietnam Pro",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "lineHeight": "16px",
+        "letterSpacing": "0.02em"
+      }
+    },
+    "spacing": {
+      "gutter-lg": "1.5rem",
+      "margin-lg": "2.5rem",
+      "space-xs": "0.25rem",
+      "space-md": "1rem",
+      "margin-md": "1.5rem",
+      "gutter-sm": "0.75rem",
+      "gutter": "1rem",
+      "space-sm": "0.5rem",
+      "margin": "1rem",
+      "space-lg": "1.5rem",
+      "space-xl": "2rem"
+    },
+    "headlineFontFamily": "Be Vietnam Pro",
+    "bodyFontFamily": "Be Vietnam Pro",
+    "labelFontFamily": "Be Vietnam Pro"
+  },
+  "screenInstances": [
+    {
+      "id": "23ed409f08224351ad7a4d717882f5b0",
+      "sourceScreen": "projects/13011488694489006533/screens/23ed409f08224351ad7a4d717882f5b0",
+      "y": 5438,
+      "width": 390,
+      "height": 1479,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "320d15554ead44beb853cc00f6210852",
+      "sourceScreen": "projects/13011488694489006533/screens/320d15554ead44beb853cc00f6210852",
+      "x": 4202,
+      "width": 390,
+      "height": 884,
+      "label": "GSM Xanh SM Ride-Hailing App"
+    },
+    {
+      "id": "3bfdf5d970184a9f901d0ebc98d5de96",
+      "sourceScreen": "projects/13011488694489006533/screens/3bfdf5d970184a9f901d0ebc98d5de96",
+      "y": 7173,
+      "width": 390,
+      "height": 1252,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "4bb3bd7c07084da8a668d0e88686b755",
+      "sourceScreen": "projects/13011488694489006533/screens/4bb3bd7c07084da8a668d0e88686b755",
+      "x": 2386,
+      "width": 390,
+      "height": 1222,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "4bc6d493614a400ab4307c70f3f0c756",
+      "sourceScreen": "projects/13011488694489006533/screens/4bc6d493614a400ab4307c70f3f0c756",
+      "x": 1024,
+      "width": 390,
+      "height": 2293,
+      "label": "Generating Screen...",
+      "hidden": true
+    },
+    {
+      "id": "6633bb9885704328844a3aeb84bceddd",
+      "sourceScreen": "projects/13011488694489006533/screens/6633bb9885704328844a3aeb84bceddd",
+      "y": 3957,
+      "width": 390,
+      "height": 1224,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "85af2ce07de0463abcf514ed6b724f28",
+      "sourceScreen": "projects/13011488694489006533/screens/85af2ce07de0463abcf514ed6b724f28",
+      "x": 1478,
+      "width": 390,
+      "height": 1055,
+      "label": "Generating Screen...",
+      "hidden": true
+    },
+    {
+      "id": "8b0c6dd9139b4ea092043a75dcc74daa",
+      "sourceScreen": "projects/13011488694489006533/screens/8b0c6dd9139b4ea092043a75dcc74daa",
+      "x": 3748,
+      "width": 390,
+      "height": 1406,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "assets_d6a3b3c65ed049878eb31469e1de683e",
+      "width": 960,
+      "height": 540,
+      "sourceAsset": "assets/d6a3b3c65ed049878eb31469e1de683e",
+      "type": "DESIGN_SYSTEM_INSTANCE"
+    },
+    {
+      "id": "b0b5098029704886acb7057004d62aa4",
+      "sourceScreen": "projects/13011488694489006533/screens/b0b5098029704886acb7057004d62aa4",
+      "y": 2548,
+      "width": 390,
+      "height": 1153,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "c56915bbc37f4c10b715b90205783fb0",
+      "sourceScreen": "projects/13011488694489006533/screens/c56915bbc37f4c10b715b90205783fb0",
+      "x": 3294,
+      "width": 390,
+      "height": 1080,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "def74f4a10864dc3a2834ee2d1988995",
+      "sourceScreen": "projects/13011488694489006533/screens/def74f4a10864dc3a2834ee2d1988995",
+      "x": 1932,
+      "width": 390,
+      "height": 1194,
+      "label": "Generating Screen...",
+      "hidden": true
+    },
+    {
+      "id": "e4cb6aa499834d87855181edb1817bbe",
+      "sourceScreen": "projects/13011488694489006533/screens/e4cb6aa499834d87855181edb1817bbe",
+      "y": 8681,
+      "width": 390,
+      "height": 1497,
+      "label": "Generating Screen..."
+    },
+    {
+      "id": "efe590f37e9a4f02afd1e80b5d468da6",
+      "sourceScreen": "projects/13011488694489006533/screens/efe590f37e9a4f02afd1e80b5d468da6",
+      "x": 2840,
+      "width": 390,
+      "height": 2291,
+      "label": "Generating Screen..."
+    }
+  ],
+  "metadata": {
+    "userRole": "OWNER"
+  }
+}
