@@ -5,6 +5,7 @@ import {
   GraduationCap,
   LocateFixed,
   MapPin,
+  Milestone,
   Navigation,
   Plane,
   Search,
@@ -15,14 +16,15 @@ import {
   type Place,
   type PlaceCategory,
   type Route,
-  computeRouteFromPlaces,
+  computeMultiStopRoute,
 } from "../data/catalog";
 import Modal from "./Modal";
 
 interface LocationPickerModalProps {
-  initialMode: "pickup" | "destination";
+  initialMode: "pickup" | "destination" | "stop";
   currentRoute: Route;
   onSelectRoute: (updatedRoute: Route) => void;
+  onSelectStop?: (place: Place) => void;
   onClose: () => void;
   onNotify?: (msg: string) => void;
 }
@@ -40,10 +42,11 @@ export default function LocationPickerModal({
   initialMode,
   currentRoute,
   onSelectRoute,
+  onSelectStop,
   onClose,
   onNotify,
 }: LocationPickerModalProps) {
-  const [activeMode, setActiveMode] = useState<"pickup" | "destination">(
+  const [activeMode, setActiveMode] = useState<"pickup" | "destination" | "stop">(
     initialMode,
   );
   const [search, setSearch] = useState("");
@@ -61,15 +64,36 @@ export default function LocationPickerModal({
   });
 
   const handleChoosePlace = (place: Place) => {
-    let nextRoute: Route;
     if (activeMode === "pickup") {
-      nextRoute = computeRouteFromPlaces(place, currentRoute.destination);
+      const nextRoute = computeMultiStopRoute(
+        place,
+        currentRoute.stops,
+        currentRoute.destination,
+      );
+      onSelectRoute(nextRoute);
       onNotify?.(`Đã chọn điểm đón: "${place.name}"`);
+    } else if (activeMode === "stop") {
+      if (onSelectStop) {
+        onSelectStop(place);
+      } else {
+        const nextStops = [...(currentRoute.stops || []), place];
+        const nextRoute = computeMultiStopRoute(
+          currentRoute.pickup,
+          nextStops,
+          currentRoute.destination,
+        );
+        onSelectRoute(nextRoute);
+      }
+      onNotify?.(`Đã thêm điểm dừng: "${place.name}"`);
     } else {
-      nextRoute = computeRouteFromPlaces(currentRoute.pickup, place);
+      const nextRoute = computeMultiStopRoute(
+        currentRoute.pickup,
+        currentRoute.stops,
+        place,
+      );
+      onSelectRoute(nextRoute);
       onNotify?.(`Đã chọn điểm đến: "${place.name}"`);
     }
-    onSelectRoute(nextRoute);
     onClose();
   };
 
@@ -97,8 +121,12 @@ export default function LocationPickerModal({
   };
 
   const handleSwapRoute = () => {
-    const swapped = computeRouteFromPlaces(
+    const reversedStops = currentRoute.stops
+      ? [...currentRoute.stops].reverse()
+      : undefined;
+    const swapped = computeMultiStopRoute(
       currentRoute.destination,
+      reversedStops,
       currentRoute.pickup,
     );
     onSelectRoute(swapped);
@@ -154,7 +182,9 @@ export default function LocationPickerModal({
       title={
         activeMode === "pickup"
           ? "Chọn Điểm Đón của bạn"
-          : "Chọn Điểm Đến mong muốn"
+          : activeMode === "stop"
+            ? "Thêm Điểm Dừng Chân Dọc Đường"
+            : "Chọn Điểm Đến mong muốn"
       }
       onClose={onClose}
     >
@@ -169,6 +199,14 @@ export default function LocationPickerModal({
             >
               <Navigation size={14} />
               <span>Điểm đón</span>
+            </button>
+            <button
+              type="button"
+              className={`mode-toggle-btn ${activeMode === "stop" ? "active" : ""}`}
+              onClick={() => setActiveMode("stop")}
+            >
+              <Milestone size={14} />
+              <span>Điểm dừng</span>
             </button>
             <button
               type="button"
@@ -200,6 +238,19 @@ export default function LocationPickerModal({
             <small>Đón:</small>
             <strong>{currentRoute.pickup.name}</strong>
           </div>
+          {currentRoute.stops &&
+            currentRoute.stops.map((st, i) => (
+              <span key={`route-preview-stop-${i}`} style={{ display: "contents" }}>
+                <span className="arrow-sep">➔</span>
+                <div
+                  className={`route-preview-pill stop-pill ${activeMode === "stop" ? "focused" : ""}`}
+                  onClick={() => setActiveMode("stop")}
+                >
+                  <small>Dừng {i + 1}:</small>
+                  <strong>{st.name}</strong>
+                </div>
+              </span>
+            ))}
           <span className="arrow-sep">➔</span>
           <div
             className={`route-preview-pill ${activeMode === "destination" ? "focused" : ""}`}
@@ -221,7 +272,7 @@ export default function LocationPickerModal({
           <span>
             {locatingGps
               ? "Đang xác định GPS thiết bị..."
-              : `Chọn vị trí GPS hiện tại làm ${activeMode === "pickup" ? "Điểm đón" : "Điểm đến"}`}
+              : `Chọn vị trí GPS hiện tại làm ${activeMode === "pickup" ? "Điểm đón" : activeMode === "stop" ? "Điểm dừng" : "Điểm đến"}`}
           </span>
         </button>
 
@@ -229,7 +280,7 @@ export default function LocationPickerModal({
         <form onSubmit={handleCustomInputSubmit} className="picker-search-form">
           <Search size={18} className="search-icon" />
           <input
-            placeholder={`Tìm hoặc nhập địa chỉ ${activeMode === "pickup" ? "đón" : "đến"} (nhấn Enter để chọn)...`}
+            placeholder={`Tìm hoặc nhập địa chỉ ${activeMode === "pickup" ? "đón" : activeMode === "stop" ? "dừng" : "đến"} (nhấn Enter để chọn)...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoFocus
@@ -266,7 +317,9 @@ export default function LocationPickerModal({
               const isSelected =
                 activeMode === "pickup"
                   ? currentRoute.pickup.name === place.name
-                  : currentRoute.destination.name === place.name;
+                  : activeMode === "destination"
+                    ? currentRoute.destination.name === place.name
+                    : currentRoute.stops?.some((st) => st.name === place.name);
               return (
                 <div
                   key={place.name}
@@ -302,7 +355,7 @@ export default function LocationPickerModal({
                 className="button primary wide"
                 onClick={handleCustomInputSubmit}
               >
-                Sử dụng "{search}" làm {activeMode === "pickup" ? "điểm đón" : "điểm đến"}
+                Sử dụng "{search}" làm {activeMode === "pickup" ? "điểm đón" : activeMode === "stop" ? "điểm dừng" : "điểm đến"}
               </button>
             </div>
           )}

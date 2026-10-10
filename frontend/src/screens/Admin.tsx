@@ -5,16 +5,21 @@ import {
   BatteryCharging,
   CarFront,
   CheckCircle2,
+  Clock,
+  Download,
   Lock,
   LogOut,
   MapPin,
   Moon,
   Phone,
+  Plus,
   RefreshCw,
   Search,
   ShieldCheck,
   Star,
   Sun,
+  Tag,
+  Trash2,
   TrendingUp,
   Unlock,
   Users,
@@ -32,12 +37,13 @@ import {
   type AdminTripItem,
   type AdminUserItem,
   type AdminVehicleItem,
+  type AdminVoucherItem,
 } from "../services/adminService";
 import { useAuth } from "../state/AuthProvider";
 import { useRide } from "../state/RideProvider";
 import { useTheme } from "../state/ThemeContext";
 
-type AdminTab = "overview" | "users" | "trips" | "fleet";
+type AdminTab = "overview" | "users" | "trips" | "fleet" | "vouchers";
 
 const FALLBACK_STATS: AdminStats = {
   total_revenue: 0,
@@ -81,9 +87,10 @@ export default function Admin() {
   const [trips, setTrips] = useState<AdminTripItem[]>([]);
   const [vehicles, setVehicles] = useState<AdminVehicleItem[]>([]);
   const [drivers, setDrivers] = useState<AdminDriverItem[]>([]);
+  const [vouchers, setVouchers] = useState<AdminVoucherItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Filters
+  // Filters & detail state
   const [userSearch, setUserSearch] = useState("");
   const [tripStatusFilter, setTripStatusFilter] = useState<
     "all" | "active" | "completed" | "cancelled"
@@ -93,30 +100,180 @@ export default function Admin() {
   const [selectedUserDetail, setSelectedUserDetail] =
     useState<AdminUserItem | null>(null);
 
+  // Voucher Creation Modal state
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherTitle, setVoucherTitle] = useState("");
+  const [voucherDiscount, setVoucherDiscount] = useState("30000");
+  const [voucherType, setVoucherType] = useState<"fixed" | "percent">("fixed");
+  const [voucherMinOrder, setVoucherMinOrder] = useState("50000");
+  const [voucherMaxUsage, setVoucherMaxUsage] = useState("500");
+
   const fetchAllAdminData = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, tripsRes, fleetRes] = await Promise.all([
-        adminService.getStats(),
-        adminService.getUsers(userSearch),
-        adminService.getTrips({
-          status: tripStatusFilter,
-          userId: tripUserFilter || undefined,
-          search: tripSearch || undefined,
-        }),
-        adminService.getFleet(),
-      ]);
+      const [statsRes, usersRes, tripsRes, fleetRes, vouchersRes] =
+        await Promise.all([
+          adminService.getStats(),
+          adminService.getUsers(userSearch),
+          adminService.getTrips({
+            status: tripStatusFilter,
+            userId: tripUserFilter || undefined,
+            search: tripSearch || undefined,
+          }),
+          adminService.getFleet(),
+          adminService.getVouchers().catch(() => ({ total: 0, vouchers: [] })),
+        ]);
       setStats(statsRes);
       setUsers(usersRes.users);
       setTrips(tripsRes.trips);
       setVehicles(fleetRes.vehicles);
       setDrivers(fleetRes.drivers);
+      setVouchers(vouchersRes.vouchers);
     } catch {
       // Giữ nguyên state hiện tại nếu mất kết nối tạm thời
     } finally {
       setLoading(false);
     }
   }, [userSearch, tripStatusFilter, tripUserFilter, tripSearch]);
+
+  // Export Revenue & CO2 report to UTF-8 BOM CSV for Excel
+  const handleExportCsv = () => {
+    if (!trips.length) {
+      notify("Chưa có chuyến đi nào để xuất báo cáo.");
+      return;
+    }
+
+    const headers = [
+      "Mã chuyến đi",
+      "Ngày đặt",
+      "Hẹn giờ đón",
+      "Khách hàng",
+      "SĐT khách",
+      "Tài xế",
+      "Biển số",
+      "Dòng xe",
+      "Điểm đón",
+      "Điểm dừng dọc đường",
+      "Điểm đến",
+      "Cự ly (km)",
+      "Thời gian (phút)",
+      "Cước niêm yết (VNĐ)",
+      "Giảm giá (VNĐ)",
+      "Doanh thu thực tế (VNĐ)",
+      "Cắt giảm CO2 (kg)",
+      "Thanh toán",
+      "Trạng thái",
+      "Đánh giá",
+      "Lý do hủy",
+    ];
+
+    const escapeCsv = (val: string | number | undefined | null) => {
+      const str = String(val ?? "").replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = trips.map((t) => {
+      const stopsStr = (t.stops || []).map((s) => s.name).join(" -> ") || "Không";
+      const co2Kg = (t.distance_km * 0.24).toFixed(2);
+      const statusVi =
+        t.status === "COMPLETED"
+          ? "Hoàn thành"
+          : t.status === "CANCELLED"
+            ? "Đã hủy"
+            : t.status === "IN_TRANSIT"
+              ? "Đang di chuyển"
+              : "Đang đón khách";
+
+      return [
+        escapeCsv(t.trip_code),
+        escapeCsv(new Date(t.created_at).toLocaleString("vi-VN")),
+        escapeCsv(t.scheduled_at ? new Date(t.scheduled_at).toLocaleString("vi-VN") : "Đi ngay"),
+        escapeCsv(t.user_name),
+        escapeCsv(t.user_phone),
+        escapeCsv(t.driver_name),
+        escapeCsv(t.vehicle_plate),
+        escapeCsv(t.service_name || t.vehicle_model),
+        escapeCsv(t.pickup_address),
+        escapeCsv(stopsStr),
+        escapeCsv(t.dest_address),
+        escapeCsv(t.distance_km),
+        escapeCsv(t.duration_mins),
+        escapeCsv(t.fare_amount),
+        escapeCsv(t.discount_amount),
+        escapeCsv(t.final_amount),
+        escapeCsv(co2Kg),
+        escapeCsv(t.payment_method),
+        escapeCsv(statusVi),
+        escapeCsv(t.rating_stars ? `${t.rating_stars} sao` : "Chưa đánh giá"),
+        escapeCsv(t.cancel_reason || ""),
+      ].join(",");
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `Bao_cao_Doanh_thu_QSM_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    notify("Đã tải xuống file báo cáo doanh thu & CO₂ (CSV / Excel) thành công!");
+  };
+
+  const handleCreateVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voucherCode.trim() || !voucherTitle.trim()) {
+      notify("Vui lòng nhập đầy đủ mã và tiêu đề.");
+      return;
+    }
+    try {
+      const res = await adminService.createVoucher({
+        code: voucherCode.trim().toUpperCase(),
+        title: voucherTitle.trim(),
+        discount_amount: Number(voucherDiscount) || 25000,
+        discount_type: voucherType,
+        min_order_val: Number(voucherMinOrder) || 0,
+        expires_at: "2026-12-31T23:59:59.000Z",
+        max_usage: Number(voucherMaxUsage) || 500,
+      });
+      notify(res.message);
+      setVouchers((prev) => [res.voucher, ...prev]);
+      setShowVoucherModal(false);
+      setVoucherCode("");
+      setVoucherTitle("");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Không thể tạo mã ưu đãi.");
+    }
+  };
+
+  const handleToggleVoucher = async (v: AdminVoucherItem) => {
+    try {
+      const res = await adminService.toggleVoucher(v.code);
+      notify(res.message);
+      setVouchers((prev) =>
+        prev.map((item) => (item.code === v.code ? res.voucher : item)),
+      );
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Lỗi khi đổi trạng thái mã.");
+    }
+  };
+
+  const handleDeleteVoucher = async (code: string) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa mã ưu đãi "${code}" không?`)) return;
+    try {
+      const res = await adminService.deleteVoucher(code);
+      notify(res.message);
+      setVouchers((prev) => prev.filter((item) => item.code !== code));
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Lỗi khi xóa mã ưu đãi.");
+    }
+  };
 
   useEffect(() => {
     if (!isAdmin) {
@@ -166,6 +323,15 @@ export default function Admin() {
           <QsmLogo size={38} />
         </div>
         <div className="header-actions">
+          <button
+            type="button"
+            className="button secondary export-csv-btn"
+            onClick={handleExportCsv}
+            title="Xuất báo cáo Doanh thu & Cắt giảm CO2 (CSV / Excel)"
+          >
+            <Download size={15} />
+            <span>Xuất Báo cáo CSV</span>
+          </button>
           <button
             type="button"
             className="icon-button"
@@ -233,6 +399,11 @@ export default function Admin() {
             id: "fleet" as const,
             label: `Đội xe (${vehicles.length || stats.fleet_summary.total_vehicles})`,
             icon: CarFront,
+          },
+          {
+            id: "vouchers" as const,
+            label: `Mã ưu đãi (${vouchers.length})`,
+            icon: Tag,
           },
         ].map(({ id, label, icon: Icon }) => (
           <button
@@ -483,6 +654,36 @@ export default function Admin() {
             ))}
           </div>
 
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              margin: "8px 0 12px",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            <span style={{ fontSize: "12.5px", color: "var(--text-sub)" }}>
+              Tìm thấy <strong>{trips.length}</strong> chuyến xe trên hệ thống
+            </span>
+            <button
+              type="button"
+              className="button secondary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "7px 14px",
+                fontSize: "12px",
+              }}
+              onClick={handleExportCsv}
+            >
+              <Download size={14} />
+              <span>Xuất Excel / CSV ({trips.length} chuyến)</span>
+            </button>
+          </div>
+
           {/* Filter by User Account */}
           {tripUserFilter && (
             <div className="admin-active-filter-bar">
@@ -512,6 +713,22 @@ export default function Admin() {
                     <div className="admin-title-row">
                       <strong className="booking-code">{t.trip_code}</strong>
                       <span className="badge model-badge">{t.service_name}</span>
+                      {t.scheduled_at && (
+                        <span
+                          className="status-badge-modern"
+                          style={{
+                            background: "rgba(234, 179, 8, 0.16)",
+                            color: "#eab308",
+                            borderColor: "rgba(234, 179, 8, 0.4)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <Clock size={11} />
+                          Hẹn đón: {new Date(t.scheduled_at).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
                       <span
                         className={`status-badge-modern ${
                           isCompleted
@@ -540,6 +757,15 @@ export default function Admin() {
                       <MapPin size={13} /> <strong>Đón:</strong>{" "}
                       {t.pickup_address}
                     </p>
+                    {t.stops && t.stops.length > 0 && (
+                      <div className="admin-route-stops" style={{ paddingLeft: "18px", borderLeft: "2px dashed var(--brand-border)", margin: "4px 0" }}>
+                        {t.stops.map((s, idx) => (
+                          <p key={idx} style={{ fontSize: "12px", color: "var(--brand)" }}>
+                            <strong>Điểm dừng {idx + 1}:</strong> {s.name} ({s.address})
+                          </p>
+                        ))}
+                      </div>
+                    )}
                     <p>
                       <MapPin size={13} /> <strong>Đến:</strong> {t.dest_address}
                     </p>
@@ -701,6 +927,106 @@ export default function Admin() {
         </div>
       )}
 
+      {/* ===================================================================
+          TAB 5: PROMO VOUCHERS MANAGEMENT
+          =================================================================== */}
+      {tab === "vouchers" && (
+        <div className="admin-section">
+          <div
+            className="admin-subhead-row"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "14px",
+              flexWrap: "wrap",
+              gap: "10px",
+            }}
+          >
+            <div>
+              <h2 style={{ fontSize: "18px", margin: "0 0 4px" }}>
+                Quản lý Mã Khuyến Mãi QSM
+              </h2>
+              <p style={{ margin: 0, fontSize: "12.5px", color: "var(--text-sub)" }}>
+                Tạo và kích hoạt các mã ưu đãi giảm cước chuyến xe cho hành khách.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="button primary"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              onClick={() => setShowVoucherModal(true)}
+            >
+              <Plus size={16} />
+              <span>Tạo mã ưu đãi mới</span>
+            </button>
+          </div>
+
+          <div className="admin-cards-list">
+            {vouchers.map((v) => (
+              <div key={v.code} className="admin-item-card">
+                <div className="admin-item-top">
+                  <div className="admin-title-row">
+                    <span className="admin-role-badge admin">
+                      <Tag size={12} /> {v.code}
+                    </span>
+                    <strong>{v.title}</strong>
+                    <span
+                      className={`status-badge-modern ${v.is_active ? "active-status" : ""}`}
+                    >
+                      {v.is_active ? "Đang áp dụng" : "Đã tạm dừng"}
+                    </span>
+                  </div>
+                  <strong className="admin-trip-price">
+                    -
+                    {v.discount_type === "percent"
+                      ? `${v.discount_amount}%`
+                      : money(v.discount_amount)}
+                  </strong>
+                </div>
+
+                <div className="admin-metrics-row">
+                  <span>
+                    Đơn tối thiểu:{" "}
+                    <strong>{v.min_order_val ? money(v.min_order_val) : "0đ"}</strong>
+                  </span>
+                  <span>
+                    Đã sử dụng:{" "}
+                    <strong>
+                      {v.usage_count || 0} / {v.max_usage || 500} lượt
+                    </strong>
+                  </span>
+                  <span>
+                    Hết hạn:{" "}
+                    <strong>{new Date(v.expires_at).toLocaleDateString("vi-VN")}</strong>
+                  </span>
+                </div>
+
+                <div className="admin-item-actions">
+                  <button
+                    type="button"
+                    className="button secondary"
+                    style={{ padding: "6px 12px", fontSize: "12px" }}
+                    onClick={() => void handleToggleVoucher(v)}
+                  >
+                    {v.is_active ? "Tạm dừng mã" : "Kích hoạt mã"}
+                  </button>
+                  <button
+                    type="button"
+                    className="button ghost danger"
+                    style={{ padding: "6px 12px", fontSize: "12px" }}
+                    onClick={() => void handleDeleteVoucher(v.code)}
+                  >
+                    <Trash2 size={14} />
+                    <span>Xóa</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* User Details Modal */}
       {selectedUserDetail && (
         <Modal
@@ -769,6 +1095,78 @@ export default function Admin() {
                 : "Kích hoạt lại tài khoản"}
             </button>
           )}
+        </Modal>
+      )}
+
+      {/* Create Voucher Modal */}
+      {showVoucherModal && (
+        <Modal
+          title="Tạo mã ưu đãi QSM mới"
+          onClose={() => setShowVoucherModal(false)}
+        >
+          <form onSubmit={handleCreateVoucher} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <label className="field">
+              <span>Mã khuyến mãi (viết liền, không dấu)</span>
+              <input
+                placeholder="VD: QSMHANOI, DIENGREEN..."
+                value={voucherCode}
+                onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Tên chương trình / Tiêu đề ưu đãi</span>
+              <input
+                placeholder="VD: Khai xuân di chuyển xanh 2026"
+                value={voucherTitle}
+                onChange={(e) => setVoucherTitle(e.target.value)}
+                required
+              />
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <label className="field">
+                <span>Hình thức giảm</span>
+                <select
+                  value={voucherType}
+                  onChange={(e) => setVoucherType(e.target.value as "fixed" | "percent")}
+                >
+                  <option value="fixed">Số tiền cố định (VNĐ)</option>
+                  <option value="percent">Phần trăm (%)</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Mức giảm ({voucherType === "percent" ? "%" : "VNĐ"})</span>
+                <input
+                  type="number"
+                  value={voucherDiscount}
+                  onChange={(e) => setVoucherDiscount(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <label className="field">
+                <span>Đơn tối thiểu (VNĐ)</span>
+                <input
+                  type="number"
+                  value={voucherMinOrder}
+                  onChange={(e) => setVoucherMinOrder(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Số lượt tối đa</span>
+                <input
+                  type="number"
+                  value={voucherMaxUsage}
+                  onChange={(e) => setVoucherMaxUsage(e.target.value)}
+                />
+              </label>
+            </div>
+            <button type="submit" className="button primary wide" style={{ marginTop: "8px" }}>
+              <Plus size={16} />
+              <span>Xác nhận phát hành mã ưu đãi</span>
+            </button>
+          </form>
         </Modal>
       )}
     </div>

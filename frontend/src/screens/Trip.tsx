@@ -1,35 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Calendar,
   Check,
   ChevronLeft,
-  Clock,
-  Headphones,
-  MessageSquare,
-  Phone,
-  ShieldCheck,
-  Star,
-  Wallet,
-  Zap,
-  MapPin,
-  RotateCcw,
-  Tag,
-  Radio,
   ChevronRight,
-  Thermometer,
-  VolumeX,
-  Gauge,
-  BatteryCharging,
-  Leaf,
+  Clock,
+  Edit3,
+  Headphones,
+  LocateFixed,
+  MapPin,
+  MessageSquare,
+  Moon,
+  Plus,
+  Phone,
   PhoneCall,
   PhoneOff,
-  Mic,
-  Volume2,
-  Sun,
-  Moon,
+  Radio,
+  RotateCcw,
   Send,
+  ShieldCheck,
+  Star,
+  Sun,
+  TicketPercent,
+  Thermometer,
+  Volume2,
+  VolumeX,
+  Wallet,
+  X,
+  Zap,
   ArrowUpDown,
-  LocateFixed,
-  Edit3,
+  BatteryCharging,
+  Gauge,
+  Leaf,
+  Mic,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
@@ -38,15 +41,20 @@ import { useTheme } from "../state/ThemeContext";
 import { isActiveTrip } from "../state/rideMachine";
 import {
   calculateVehicleFare,
+  computeMultiStopRoute,
   computeRouteFromPlaces,
+  defaultVouchers,
   driver,
   locationDirectory,
   money,
   popularRoutes,
   vehicleById,
   vehicles,
+  type Place,
+  type Route,
+  type VehicleId,
+  type Voucher,
 } from "../data/catalog";
-import type { Place, Route, VehicleId } from "../data/catalog";
 import RouteMap from "../components/RouteMap";
 import { RouteDetails } from "../components/RouteDetails";
 import Modal from "../components/Modal";
@@ -89,10 +97,31 @@ export default function Trip() {
     ride.vehicle || "vf5",
   );
   const [paymentMethod, setPaymentMethod] = useState("Ví QSM Pay");
-  const [promoApplied, setPromoApplied] = useState(true);
-  const [pickerMode, setPickerMode] = useState<"pickup" | "destination" | null>(
-    null,
+  const [pickerMode, setPickerMode] = useState<
+    "pickup" | "destination" | "stop" | null
+  >(null);
+
+  // Voucher / Promotion state
+  const [vouchersList, setVouchersList] = useState<Voucher[]>(defaultVouchers);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(
+    defaultVouchers[0],
   );
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [manualVoucherCode, setManualVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState("");
+  const [voucherLoading, setVoucherLoading] = useState(false);
+
+  // Scheduled Ride state
+  const [rideBookingType, setRideBookingType] = useState<"instant" | "scheduled">(
+    "instant",
+  );
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+  const [scheduledTime, setScheduledTime] = useState(() => {
+    const d = new Date(Date.now() + 35 * 60 * 1000);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  });
 
   // In-cabin comfort preferences
   const [cabinTemp, setCabinTemp] = useState(23);
@@ -138,6 +167,22 @@ export default function Trip() {
     if (ride.route) setSelectedRoute(ride.route);
     if (ride.vehicle) setSelectedVehicleId(ride.vehicle);
   }, [ride.route, ride.vehicle]);
+
+  // Đồng bộ danh sách voucher hoạt động từ Backend
+  useEffect(() => {
+    tripApiService
+      .getVouchers()
+      .then((res) => {
+        if (res.vouchers && res.vouchers.length > 0) {
+          setVouchersList(res.vouchers);
+          const activeFirst =
+            res.vouchers.find((v) => v.code === "QSM2026" && v.is_active) ||
+            res.vouchers.find((v) => v.is_active);
+          if (activeFirst) setSelectedVoucher(activeFirst);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (started || complete) {
@@ -196,6 +241,11 @@ export default function Trip() {
     notify(`Đã gửi yêu cầu đặt ${v.name} (Mã: ${localCode})!`);
 
     // Ghi nhận cuốc xe lên Backend gắn với đúng user.id và trip_code
+    const scheduledAtISO =
+      rideBookingType === "scheduled" && scheduledDate && scheduledTime
+        ? new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString()
+        : undefined;
+
     void tripApiService
       .book({
         trip_code: localCode,
@@ -209,9 +259,15 @@ export default function Trip() {
         pickup_coords: selectedRoute.pickup.coords,
         dest_address: `${selectedRoute.destination.name}, ${selectedRoute.destination.address}`,
         dest_coords: selectedRoute.destination.coords,
+        stops: selectedRoute.stops?.map((st) => ({
+          name: st.name,
+          address: st.address,
+          coords: st.coords,
+        })),
+        scheduled_at: scheduledAtISO,
         distance_km: selectedRoute.distance,
         duration_mins: selectedRoute.duration,
-        voucher_code: promoApplied ? "QSM2026" : undefined,
+        voucher_code: selectedVoucher?.code,
         payment_method:
           paymentMethod === "Tiền mặt"
             ? "cash"
@@ -296,6 +352,84 @@ export default function Trip() {
     dispatch({ type: "SET_ROUTE", route: nextRoute });
   };
 
+  const handleAddStop = (place: Place) => {
+    const currentStops = selectedRoute.stops || [];
+    if (currentStops.length >= 2) {
+      notify("Tối đa 2 điểm dừng trung gian cho một chuyến đi.");
+      return;
+    }
+    const nextStops = [...currentStops, place];
+    const nextRoute = computeMultiStopRoute(
+      selectedRoute.pickup,
+      nextStops,
+      selectedRoute.destination,
+    );
+    handleUpdateRoute(nextRoute);
+    notify(`Đã thêm điểm dừng: ${place.name}`);
+  };
+
+  const handleRemoveStop = (stopIndex: number) => {
+    const currentStops = selectedRoute.stops || [];
+    const nextStops = currentStops.filter((_, idx) => idx !== stopIndex);
+    const nextRoute = computeMultiStopRoute(
+      selectedRoute.pickup,
+      nextStops,
+      selectedRoute.destination,
+    );
+    handleUpdateRoute(nextRoute);
+    notify("Đã xóa điểm dừng khỏi hành trình.");
+  };
+
+  const handleApplyVoucherCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = manualVoucherCode.trim().toUpperCase();
+    if (!code) return;
+    setVoucherLoading(true);
+    setVoucherError("");
+
+    try {
+      const res = await tripApiService.applyVoucher(code, currentFare);
+      if (res.valid) {
+        const found = vouchersList.find((v) => v.code === code) || {
+          code,
+          title: res.title,
+          discount_amount: res.discount_amount,
+          discount_type: "fixed" as const,
+          min_order_val: res.min_order_val,
+          expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+          is_active: true,
+        };
+        setSelectedVoucher(found);
+        setShowVoucherModal(false);
+        setManualVoucherCode("");
+        notify(`Áp dụng mã ${code} thành công (-${money(res.discount_amount)})!`);
+      } else {
+        setVoucherError(res.message || "Mã không hợp lệ hoặc không đủ điều kiện.");
+      }
+    } catch {
+      // Local fallback check
+      const matched = vouchersList.find(
+        (v) => v.code.toUpperCase() === code && v.is_active,
+      );
+      if (matched) {
+        if (matched.min_order_val && currentFare < matched.min_order_val) {
+          setVoucherError(
+            `Đơn hàng cần tối thiểu ${money(matched.min_order_val)} để áp dụng mã này.`,
+          );
+        } else {
+          setSelectedVoucher(matched);
+          setShowVoucherModal(false);
+          setManualVoucherCode("");
+          notify(`Áp dụng thành công mã ${matched.code}!`);
+        }
+      } else {
+        setVoucherError("Mã khuyến mãi không tồn tại hoặc đã hết hạn.");
+      }
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
   const handleQuickGpsLocate = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!navigator.geolocation) {
@@ -314,8 +448,9 @@ export default function Trip() {
           address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
           coords,
         };
-        const nextRoute = computeRouteFromPlaces(
+        const nextRoute = computeMultiStopRoute(
           gpsPlace,
+          selectedRoute.stops,
           selectedRoute.destination,
         );
         handleUpdateRoute(nextRoute);
@@ -335,9 +470,14 @@ export default function Trip() {
     selectedVehicleId,
     activeRouteForFare.distance,
   );
-  const finalFare = promoApplied
-    ? Math.max(15000, currentFare - 25000)
-    : currentFare;
+  const voucherDiscount = selectedVoucher
+    ? selectedVoucher.min_order_val && currentFare < selectedVoucher.min_order_val
+      ? 0
+      : selectedVoucher.discount_type === "percent"
+        ? Math.round((currentFare * selectedVoucher.discount_amount) / 100)
+        : selectedVoucher.discount_amount
+    : 0;
+  const finalFare = Math.max(15000, currentFare - voucherDiscount);
 
   return (
     <div className="trip-screen gsm-trip-cockpit">
@@ -456,7 +596,7 @@ export default function Trip() {
             =================================================================== */}
         {!active && !complete ? (
           <div className="prebooking-panel">
-            {/* Interactive Route Selector (Pickup & Destination) */}
+            {/* Interactive Route Selector (Pickup, Stops & Destination) */}
             <div className="route-select-box interactive">
               <div
                 className="route-point pickup-point clickable-point"
@@ -491,6 +631,51 @@ export default function Trip() {
                 </div>
               </div>
 
+              {/* Intermediate Stops */}
+              {selectedRoute.stops &&
+                selectedRoute.stops.map((stopItem, idx) => (
+                  <div
+                    key={`stop-item-${idx}-${stopItem.name}`}
+                    className="route-point stop-point clickable-point"
+                  >
+                    <span className="point-dot stop-dot">{idx + 1}</span>
+                    <div className="point-info">
+                      <small>Điểm dừng {idx + 1} (dọc đường)</small>
+                      <strong>{stopItem.name}</strong>
+                      <span>{stopItem.address}</span>
+                    </div>
+                    <div className="point-actions">
+                      <button
+                        type="button"
+                        className="point-remove-stop-btn"
+                        title="Xóa điểm dừng này"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveStop(idx);
+                        }}
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+              {/* Add Stop Button */}
+              {(selectedRoute.stops?.length || 0) < 2 && (
+                <div className="add-stop-row">
+                  <button
+                    type="button"
+                    className="add-stop-inline-btn"
+                    onClick={() => setPickerMode("stop")}
+                  >
+                    <Plus size={14} />
+                    <span>
+                      + Thêm điểm dừng đón/trả ({selectedRoute.stops?.length || 0}/2)
+                    </span>
+                  </button>
+                </div>
+              )}
+
               <div className="route-divider-with-swap">
                 <div className="route-divider" />
                 <button
@@ -498,8 +683,12 @@ export default function Trip() {
                   className="route-swap-circle-btn"
                   title="Đảo chiều điểm đón và điểm đến"
                   onClick={() => {
-                    const swapped = computeRouteFromPlaces(
+                    const revStops = selectedRoute.stops
+                      ? [...selectedRoute.stops].reverse()
+                      : undefined;
+                    const swapped = computeMultiStopRoute(
                       selectedRoute.destination,
+                      revStops,
                       selectedRoute.pickup,
                     );
                     handleUpdateRoute(swapped);
@@ -533,6 +722,105 @@ export default function Trip() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Scheduled Ride Selector */}
+            <div className="schedule-ride-card">
+              <div className="schedule-type-toggle">
+                <button
+                  type="button"
+                  className={`schedule-toggle-btn ${rideBookingType === "instant" ? "active" : ""}`}
+                  onClick={() => setRideBookingType("instant")}
+                >
+                  <Zap size={14} />
+                  <span>Đi ngay lập tức</span>
+                </button>
+                <button
+                  type="button"
+                  className={`schedule-toggle-btn ${rideBookingType === "scheduled" ? "active" : ""}`}
+                  onClick={() => setRideBookingType("scheduled")}
+                >
+                  <Calendar size={14} />
+                  <span>Hẹn giờ đón xe</span>
+                </button>
+              </div>
+
+              {rideBookingType === "scheduled" && (
+                <div className="schedule-pickers-box">
+                  <div className="schedule-inputs-row">
+                    <label className="schedule-field">
+                      <span>Ngày đón:</span>
+                      <input
+                        type="date"
+                        value={scheduledDate}
+                        min={new Date().toISOString().split("T")[0]}
+                        onChange={(e) => setScheduledDate(e.target.value)}
+                      />
+                    </label>
+                    <label className="schedule-field">
+                      <span>Giờ hẹn:</span>
+                      <input
+                        type="time"
+                        value={scheduledTime}
+                        onChange={(e) => setScheduledTime(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="schedule-shortcuts">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 30 * 60 * 1000);
+                        setScheduledDate(d.toISOString().split("T")[0]);
+                        setScheduledTime(
+                          `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
+                        );
+                      }}
+                    >
+                      +30 phút
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 60 * 60 * 1000);
+                        setScheduledDate(d.toISOString().split("T")[0]);
+                        setScheduledTime(
+                          `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
+                        );
+                      }}
+                    >
+                      +1 giờ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 2 * 60 * 60 * 1000);
+                        setScheduledDate(d.toISOString().split("T")[0]);
+                        setScheduledTime(
+                          `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
+                        );
+                      }}
+                    >
+                      +2 giờ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tomorrow = new Date(
+                          Date.now() + 24 * 60 * 60 * 1000,
+                        );
+                        setScheduledDate(tomorrow.toISOString().split("T")[0]);
+                        setScheduledTime("08:00");
+                      }}
+                    >
+                      Sáng mai (08:00)
+                    </button>
+                  </div>
+                  <p className="schedule-note">
+                    <Clock size={12} /> Tài xế QSM sẽ liên hệ trước giờ đón 10 phút. Hủy chuyến miễn phí trước 20 phút.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Quick Pickup Locations Carousel */}
@@ -654,8 +942,8 @@ export default function Trip() {
                       </div>
                       <div className="tier-price-box">
                         <strong className="tier-price">{money(itemFare)}</strong>
-                        {promoApplied && (
-                          <small className="tier-discount">-25.000đ</small>
+                        {selectedVoucher && voucherDiscount > 0 && (
+                          <small className="tier-discount">-{money(voucherDiscount)}</small>
                         )}
                       </div>
                     </div>
@@ -702,20 +990,17 @@ export default function Trip() {
             {/* Promo & Payment Row */}
             <div className="booking-meta-bar">
               <div
-                className="promo-pill"
-                onClick={() => {
-                  setPromoApplied(!promoApplied);
-                  notify(
-                    promoApplied
-                      ? "Đã gỡ mã ưu đãi."
-                      : "Đã áp dụng mã QSM2026 (-25.000đ)",
-                  );
-                }}
+                className={`promo-pill ${selectedVoucher ? "active" : ""}`}
+                onClick={() => setShowVoucherModal(true)}
+                title="Chạm để mở ví mã ưu đãi QSM"
               >
-                <Tag size={14} />
+                <TicketPercent size={15} />
                 <span>
-                  QSM2026 {promoApplied ? "(Đã áp dụng)" : "(Chạm để dùng)"}
+                  {selectedVoucher
+                    ? `${selectedVoucher.code} (-${money(voucherDiscount)})`
+                    : "Chọn mã ưu đãi QSM"}
                 </span>
+                <ChevronRight size={13} style={{ opacity: 0.6, marginLeft: "2px" }} />
               </div>
               <div className="payment-pill">
                 <Wallet size={14} />
@@ -737,7 +1022,7 @@ export default function Trip() {
               <div className="fare-breakdown-row">
                 <span>Cước phí niêm yết ({selectedRoute.distance} km)</span>
                 <div className="fare-numbers">
-                  {promoApplied && (
+                  {selectedVoucher && voucherDiscount > 0 && (
                     <span className="old-fare">{money(currentFare)}</span>
                   )}
                   <strong className="final-fare">{money(finalFare)}</strong>
@@ -749,8 +1034,20 @@ export default function Trip() {
                   className="button primary cta-book-now"
                   onClick={handleBookNow}
                 >
-                  <Zap size={18} />
-                  <span>Xác nhận đặt {v.name}</span>
+                  {rideBookingType === "scheduled" ? (
+                    <>
+                      <Calendar size={18} />
+                      <span>
+                        Đặt trước {v.name} ({scheduledTime} ·{" "}
+                        {scheduledDate.split("-").reverse().join("/")})
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={18} />
+                      <span>Xác nhận đặt {v.name}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -1437,11 +1734,139 @@ export default function Trip() {
         </Modal>
       )}
 
+      {showVoucherModal && (
+        <Modal
+          title="Mã Khuyến Mãi & Ưu Đãi QSM"
+          onClose={() => {
+            setShowVoucherModal(false);
+            setVoucherError("");
+          }}
+        >
+          <div className="voucher-picker-modal">
+            {/* Manual Code Input Form */}
+            <form onSubmit={handleApplyVoucherCode} className="voucher-input-bar">
+              <input
+                type="text"
+                placeholder="Nhập mã ưu đãi (VD: QSM2026, DIENGREEN)..."
+                value={manualVoucherCode}
+                onChange={(e) => setManualVoucherCode(e.target.value.toUpperCase())}
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="button primary"
+                disabled={voucherLoading || !manualVoucherCode.trim()}
+              >
+                {voucherLoading ? "Kiểm tra..." : "Áp dụng"}
+              </button>
+            </form>
+
+            {voucherError && (
+              <div className="voucher-error-hint">{voucherError}</div>
+            )}
+
+            {/* List of Available Vouchers */}
+            <div className="vouchers-list-scroll">
+              <h4 className="vouchers-section-title">
+                Ưu đãi dành riêng cho bạn ({vouchersList.length}):
+              </h4>
+              <div className="voucher-cards-grid">
+                {vouchersList.map((voc) => {
+                  const isApplied = selectedVoucher?.code === voc.code;
+                  const isEligible =
+                    !voc.min_order_val || currentFare >= voc.min_order_val;
+                  const discountDisplay =
+                    voc.discount_type === "percent"
+                      ? `${voc.discount_amount}%`
+                      : money(voc.discount_amount);
+
+                  return (
+                    <div
+                      key={voc.code}
+                      className={`voucher-card-item ${isApplied ? "applied" : ""} ${!isEligible ? "disabled" : ""}`}
+                    >
+                      <div className="voucher-card-left">
+                        <div className="voucher-badge">
+                          <TicketPercent size={18} />
+                          <strong>Giảm {discountDisplay}</strong>
+                        </div>
+                        <div className="voucher-details">
+                          <h5 className="voucher-code-title">
+                            <code>{voc.code}</code> · {voc.title}
+                          </h5>
+                          <span className="voucher-condition">
+                            {voc.min_order_val
+                              ? `Đơn tối thiểu ${money(voc.min_order_val)}`
+                              : "Không giới hạn giá trị tối thiểu"}
+                          </span>
+                          <span className="voucher-expiry">
+                            HSD: {new Date(voc.expires_at).toLocaleDateString("vi-VN")}
+                          </span>
+                          {!isEligible && voc.min_order_val && (
+                            <small className="voucher-ineligible-note">
+                              Cần thêm {money(voc.min_order_val - currentFare)} để sử dụng
+                            </small>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="voucher-card-right">
+                        {isApplied ? (
+                          <button
+                            type="button"
+                            className="voucher-action-btn applied"
+                            onClick={() => {
+                              setSelectedVoucher(null);
+                              notify("Đã hủy áp dụng mã ưu đãi.");
+                            }}
+                          >
+                            <Check size={14} />
+                            <span>Đang dùng</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="voucher-action-btn select"
+                            disabled={!isEligible}
+                            onClick={() => {
+                              setSelectedVoucher(voc);
+                              setShowVoucherModal(false);
+                              notify(`Đã áp dụng mã ${voc.code}!`);
+                            }}
+                          >
+                            Sử dụng
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {selectedVoucher && (
+                <button
+                  type="button"
+                  className="button secondary wide remove-voucher-btn"
+                  onClick={() => {
+                    setSelectedVoucher(null);
+                    setShowVoucherModal(false);
+                    notify("Đã gỡ bỏ mã khuyến mãi.");
+                  }}
+                >
+                  Không áp dụng mã khuyến mãi cho chuyến này
+                </button>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {pickerMode && (
         <LocationPickerModal
           initialMode={pickerMode}
           currentRoute={selectedRoute}
           onSelectRoute={(nextRoute) => handleUpdateRoute(nextRoute)}
+          onSelectStop={(place) => handleAddStop(place)}
           onClose={() => setPickerMode(null)}
           onNotify={notify}
         />

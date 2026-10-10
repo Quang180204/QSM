@@ -47,6 +47,12 @@ export interface DriverEntity {
   status: DriverStatus;
 }
 
+export interface TripStopEntity {
+  name: string;
+  address: string;
+  coords: [number, number]; // [lng, lat]
+}
+
 export interface TripEntity {
   id: string;
   trip_code: string;
@@ -57,6 +63,8 @@ export interface TripEntity {
   pickup_coords: [number, number]; // [lng, lat]
   dest_address: string;
   dest_coords: [number, number]; // [lng, lat]
+  stops?: TripStopEntity[];
+  scheduled_at?: string | null;
   distance_km: number;
   duration_mins: number;
   fare_amount: number;
@@ -81,11 +89,24 @@ export interface TripMessageEntity {
   created_at: string;
 }
 
+export interface VoucherEntity {
+  code: string;
+  title: string;
+  discount_amount: number;
+  discount_type: "fixed" | "percent";
+  min_order_val?: number;
+  expires_at: string;
+  is_active: boolean;
+  usage_count: number;
+  max_usage?: number;
+}
+
 export interface DatabaseStore {
   users: UserEntity[];
   vehicles: VehicleEntity[];
   drivers: DriverEntity[];
   trips: TripEntity[];
   messages: TripMessageEntity[];
+  vouchers: VoucherEntity[];
 }
 

@@ -40,6 +40,7 @@ export default function RouteMap({
       <RealRouteMap
         pickupCoords={pickupCoords}
         destCoords={destCoords}
+        stops={route.stops}
         pickupName={route.pickup.name}
         destName={route.destination.name}
         isDarkMode={theme === "dark"}

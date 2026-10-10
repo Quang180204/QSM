@@ -104,6 +104,7 @@ export interface Place {
 export interface Route {
   pickup: Place;
   destination: Place;
+  stops?: Place[];
   distance: number;
   duration: number;
 }
@@ -228,6 +229,88 @@ export function computeRouteFromPlaces(pickup: Place, destination: Place): Route
     duration,
   };
 }
+
+export function computeMultiStopRoute(
+  pickup: Place,
+  stops: Place[] | undefined,
+  destination: Place,
+): Route {
+  const validStops = stops && stops.length > 0 ? stops : [];
+  const allPoints = [pickup, ...validStops, destination];
+  let totalDist = 0;
+  let totalDur = 0;
+  for (let i = 0; i < allPoints.length - 1; i++) {
+    const leg = computeRouteFromPlaces(allPoints[i], allPoints[i + 1]);
+    totalDist += leg.distance;
+    totalDur += leg.duration;
+  }
+  return {
+    pickup,
+    stops: validStops.length > 0 ? validStops : undefined,
+    destination,
+    distance: Number(totalDist.toFixed(1)),
+    duration: totalDur,
+  };
+}
+
+export interface Voucher {
+  code: string;
+  title: string;
+  discount_amount: number;
+  discount_type: "fixed" | "percent";
+  min_order_val?: number;
+  expires_at: string;
+  is_active: boolean;
+  usage_count?: number;
+  max_usage?: number;
+}
+
+export const defaultVouchers: Voucher[] = [
+  {
+    code: "QSM2026",
+    title: "Khai xuân di chuyển xanh 2026",
+    discount_amount: 25000,
+    discount_type: "fixed",
+    min_order_val: 40000,
+    expires_at: "2026-12-31T23:59:59.000Z",
+    is_active: true,
+    usage_count: 142,
+    max_usage: 1000,
+  },
+  {
+    code: "DIENGREEN",
+    title: "Ưu đãi xe thuần điện VinFast",
+    discount_amount: 30000,
+    discount_type: "fixed",
+    min_order_val: 50000,
+    expires_at: "2026-12-31T23:59:59.000Z",
+    is_active: true,
+    usage_count: 89,
+    max_usage: 500,
+  },
+  {
+    code: "QSMAIRPORT",
+    title: "Đưa đón sân bay Nội Bài",
+    discount_amount: 50000,
+    discount_type: "fixed",
+    min_order_val: 120000,
+    expires_at: "2026-12-31T23:59:59.000Z",
+    is_active: true,
+    usage_count: 65,
+    max_usage: 300,
+  },
+  {
+    code: "VIPMEMBER",
+    title: "Đặc quyền Hội viên Kim Cương",
+    discount_amount: 40000,
+    discount_type: "fixed",
+    min_order_val: 70000,
+    expires_at: "2026-12-31T23:59:59.000Z",
+    is_active: true,
+    usage_count: 28,
+    max_usage: 200,
+  },
+];
 
 export function calculateVehicleFare(
   vehicleId: VehicleId,

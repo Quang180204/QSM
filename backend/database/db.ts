@@ -202,6 +202,52 @@ export function createDefaultSeedData(): DatabaseStore {
     // Xóa toàn bộ dữ liệu chuyến đi và lịch sử mẫu để mỗi tài khoản quản lý chuyến đi độc lập
     trips: [],
     messages: [],
+    vouchers: [
+      {
+        code: "QSM2026",
+        title: "Khai xuân di chuyển xanh 2026",
+        discount_amount: 25000,
+        discount_type: "fixed",
+        min_order_val: 40000,
+        expires_at: "2026-12-31T23:59:59.000Z",
+        is_active: true,
+        usage_count: 142,
+        max_usage: 1000,
+      },
+      {
+        code: "DIENGREEN",
+        title: "Ưu đãi xe thuần điện VinFast",
+        discount_amount: 30000,
+        discount_type: "fixed",
+        min_order_val: 50000,
+        expires_at: "2026-12-31T23:59:59.000Z",
+        is_active: true,
+        usage_count: 89,
+        max_usage: 500,
+      },
+      {
+        code: "QSMAIRPORT",
+        title: "Đưa đón sân bay Nội Bài",
+        discount_amount: 50000,
+        discount_type: "fixed",
+        min_order_val: 120000,
+        expires_at: "2026-12-31T23:59:59.000Z",
+        is_active: true,
+        usage_count: 65,
+        max_usage: 300,
+      },
+      {
+        code: "VIPMEMBER",
+        title: "Đặc quyền Hội viên Kim Cương",
+        discount_amount: 40000,
+        discount_type: "fixed",
+        min_order_val: 70000,
+        expires_at: "2026-12-31T23:59:59.000Z",
+        is_active: true,
+        usage_count: 28,
+        max_usage: 200,
+      },
+    ],
   };
 }
 
@@ -216,7 +262,12 @@ class LocalDatabase {
     if (fs.existsSync(DB_JSON_PATH)) {
       try {
         const raw = fs.readFileSync(DB_JSON_PATH, "utf-8");
-        return JSON.parse(raw) as DatabaseStore;
+        const parsed = JSON.parse(raw) as DatabaseStore;
+        if (!parsed.vouchers) {
+          parsed.vouchers = createDefaultSeedData().vouchers;
+          this.save(parsed);
+        }
+        return parsed;
       } catch {
         // Fallback to default seed
       }

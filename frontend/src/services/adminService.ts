@@ -52,6 +52,8 @@ export interface AdminTripItem {
   vehicle_type: "bike" | "car" | "luxury";
   pickup_address: string;
   dest_address: string;
+  stops?: Array<{ name: string; address: string; coords: [number, number] }>;
+  scheduled_at?: string | null;
   distance_km: number;
   duration_mins: number;
   fare_amount: number;
@@ -65,6 +67,18 @@ export interface AdminTripItem {
   feedback_note?: string;
   created_at: string;
   completed_at?: string;
+}
+
+export interface AdminVoucherItem {
+  code: string;
+  title: string;
+  discount_amount: number;
+  discount_type: "fixed" | "percent";
+  min_order_val?: number;
+  expires_at: string;
+  is_active: boolean;
+  usage_count: number;
+  max_usage?: number;
 }
 
 export interface AdminVehicleItem {
@@ -147,6 +161,35 @@ export const adminService = {
       vehicles: AdminVehicleItem[];
       drivers: AdminDriverItem[];
     }>("/admin/fleet");
+  },
+
+  async getVouchers(): Promise<{ total: number; vouchers: AdminVoucherItem[] }> {
+    return apiRequest<{ total: number; vouchers: AdminVoucherItem[] }>("/admin/vouchers");
+  },
+
+  async createVoucher(
+    voucher: Omit<AdminVoucherItem, "usage_count" | "is_active">,
+  ): Promise<{ message: string; voucher: AdminVoucherItem }> {
+    return apiRequest<{ message: string; voucher: AdminVoucherItem }>("/admin/vouchers", {
+      method: "POST",
+      body: JSON.stringify(voucher),
+    });
+  },
+
+  async toggleVoucher(
+    code: string,
+  ): Promise<{ message: string; voucher: AdminVoucherItem }> {
+    return apiRequest<{ message: string; voucher: AdminVoucherItem }>(
+      `/admin/vouchers/${encodeURIComponent(code)}/toggle`,
+      { method: "PATCH" },
+    );
+  },
+
+  async deleteVoucher(code: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(
+      `/admin/vouchers/${encodeURIComponent(code)}`,
+      { method: "DELETE" },
+    );
   },
 };
 

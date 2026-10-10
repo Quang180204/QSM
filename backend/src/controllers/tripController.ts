@@ -121,6 +121,8 @@ export const tripController = {
       pickup_coords,
       dest_address,
       dest_coords,
+      stops,
+      scheduled_at,
       distance_km,
       duration_mins,
       voucher_code,
@@ -132,6 +134,8 @@ export const tripController = {
       pickup_coords?: [number, number];
       dest_address?: string;
       dest_coords?: [number, number];
+      stops?: Array<{ name: string; address: string; coords: [number, number] }>;
+      scheduled_at?: string | null;
       distance_km?: number;
       duration_mins?: number;
       voucher_code?: string;
@@ -174,6 +178,16 @@ export const tripController = {
       if (veh) veh.status = "on_trip";
     }
 
+    // Ghi nhận lượt sử dụng mã ưu đãi nếu có
+    if (fareCalc.voucher_applied && db.data.vouchers) {
+      const vMatch = db.data.vouchers.find(
+        (v) => v.code === fareCalc.voucher_applied,
+      );
+      if (vMatch) {
+        vMatch.usage_count = (vMatch.usage_count || 0) + 1;
+      }
+    }
+
     const uniqueCode = generateUniqueTripCode(trip_code);
     const newTrip: TripEntity = {
       id: `trp-${crypto.randomUUID().slice(0, 8)}`,
@@ -185,6 +199,8 @@ export const tripController = {
       pickup_coords: safePickupCoords,
       dest_address,
       dest_coords: safeDestCoords,
+      stops: stops || [],
+      scheduled_at: scheduled_at || null,
       distance_km: fareCalc.distance_km,
       duration_mins: duration_mins || fareCalc.duration_mins,
       fare_amount: fareCalc.fare_amount,
@@ -431,6 +447,57 @@ export const tripController = {
       sent: userMsg,
       reply: autoReply,
       messages: db.data.messages.filter((m) => m.trip_id === tripId),
+    });
+  },
+
+  getVouchers(_req: Request, res: Response): void {
+    const list = (db.data.vouchers || []).filter((v) => v.is_active);
+    res.json({ total: list.length, vouchers: list });
+  },
+
+  applyVoucher(req: Request, res: Response): void {
+    const { code, fare_amount } = req.body as {
+      code?: string;
+      fare_amount?: number;
+    };
+    if (!code?.trim()) {
+      res.status(400).json({ message: "Vui lòng nhập mã ưu đãi." });
+      return;
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const vMatch = (db.data.vouchers || []).find(
+      (v) => v.code === cleanCode && v.is_active,
+    );
+
+    if (!vMatch) {
+      res.status(404).json({
+        valid: false,
+        message: `Mã ưu đãi "${cleanCode}" không tồn tại hoặc đã hết hiệu lực.`,
+      });
+      return;
+    }
+
+    const currentFare = Number(fare_amount) || 50000;
+    if (vMatch.min_order_val && currentFare < vMatch.min_order_val) {
+      res.status(400).json({
+        valid: false,
+        message: `Mã "${cleanCode}" chỉ áp dụng cho chuyến đi từ ${vMatch.min_order_val.toLocaleString("vi-VN")}đ.`,
+      });
+      return;
+    }
+
+    const discount =
+      vMatch.discount_type === "percent"
+        ? Math.round((currentFare * vMatch.discount_amount) / 100)
+        : vMatch.discount_amount;
+
+    res.json({
+      valid: true,
+      code: vMatch.code,
+      title: vMatch.title,
+      discount_amount: Math.min(discount, Math.max(0, currentFare - 15000)),
+      min_order_val: vMatch.min_order_val || 0,
+      message: `Đã áp dụng mã "${vMatch.code}": -${discount.toLocaleString("vi-VN")}đ!`,
     });
   },
 };

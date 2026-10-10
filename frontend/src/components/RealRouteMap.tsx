@@ -6,6 +6,7 @@ import { locationDirectory, type Place } from "../data/catalog";
 export interface RealRouteMapProps {
   pickupCoords: [number, number]; // [lng, lat]
   destCoords: [number, number]; // [lng, lat]
+  stops?: Place[];
   pickupName?: string;
   destName?: string;
   driverCoords?: [number, number]; // [lng, lat]
@@ -19,17 +20,44 @@ export interface RealRouteMapProps {
   ) => void;
 }
 
+export function computeBearing(
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number,
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+  const φ1 = toRad(startLat);
+  const φ2 = toRad(endLat);
+  const Δλ = toRad(endLng - startLng);
+
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  const θ = Math.atan2(y, x);
+  return (toDeg(θ) + 360) % 360;
+}
+
 export async function fetchRealRoute(
   pickup: [number, number],
   dest: [number, number],
+  stops?: Place[],
 ): Promise<{
   coordinates: [number, number][]; // [lat, lng] array for Leaflet polyline
   distanceKm: string;
   durationMins: number;
 } | null> {
   try {
+    const stopCoords = (stops || []).map((s) => s.coords);
+    const allWaypoints = [pickup, ...stopCoords, dest];
+    const waypointsStr = allWaypoints
+      .map(([lng, lat]) => `${lng},${lat}`)
+      .join(";");
+
     const response = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${pickup[0]},${pickup[1]};${dest[0]},${dest[1]}?overview=full&geometries=geojson`,
+      `https://router.project-osrm.org/route/v1/driving/${waypointsStr}?overview=full&geometries=geojson`,
     );
     if (!response.ok) return null;
     const json = (await response.json()) as {
@@ -113,6 +141,7 @@ async function resolveCoordsToPlace(
 export default function RealRouteMap({
   pickupCoords,
   destCoords,
+  stops = [],
   pickupName = "Điểm đón",
   destName = "Điểm đến",
   driverCoords,
@@ -202,6 +231,20 @@ export default function RealRouteMap({
       .bindPopup(`<strong>Điểm đến:</strong> ${destName}`)
       .addTo(map);
 
+    // Ghim các điểm dừng dọc đường (nếu có)
+    stops.forEach((stop, sIdx) => {
+      const stopLatLng: [number, number] = [stop.coords[1], stop.coords[0]];
+      const stopIcon = L.divIcon({
+        className: "qsm-map-stop-pin",
+        html: `<div style="width:22px;height:22px;border-radius:50%;background:#f59e0b;color:#051923;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 0 14px #f59e0b;cursor:pointer;">${sIdx + 1}</div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      });
+      L.marker(stopLatLng, { icon: stopIcon })
+        .bindPopup(`<strong>Điểm dừng ${sIdx + 1}:</strong> ${stop.name}<br/><small>${stop.address}</small>`)
+        .addTo(map);
+    });
+
     if (interactivePick) {
       pMarker.on("dragend", () => {
         const pos = pMarker.getLatLng();
@@ -229,21 +272,27 @@ export default function RealRouteMap({
       });
     }
 
-    // Vẽ đường cơ sở ngay lập tức
-    const baseLine = L.polyline([pickupLatLng, destLatLng], {
+    // Vẽ đường cơ sở ngay lập tức qua các điểm
+    const allKeyPoints: [number, number][] = [
+      pickupLatLng,
+      ...stops.map((s) => [s.coords[1], s.coords[0]] as [number, number]),
+      destLatLng,
+    ];
+
+    const baseLine = L.polyline(allKeyPoints, {
       color: "#00f5d4",
       weight: 4,
       opacity: 0.85,
       dashArray: "6 6",
     }).addTo(map);
 
-    map.fitBounds(L.latLngBounds([pickupLatLng, destLatLng]), {
+    map.fitBounds(L.latLngBounds(allKeyPoints), {
       padding: [42, 42],
     });
 
-    // Tải lộ trình thực tế qua OSRM Directions API
+    // Tải lộ trình thực tế qua OSRM Directions API (hỗ trợ đa điểm dừng)
     let active = true;
-    void fetchRealRoute([pickupLng, pickupLat], [destLng, destLat]).then((res) => {
+    void fetchRealRoute([pickupLng, pickupLat], [destLng, destLat], stops).then((res) => {
       if (!active || !res || !mapRef.current) return;
       baseLine.remove();
       routePathRef.current = res.coordinates;
@@ -259,7 +308,7 @@ export default function RealRouteMap({
       mapRef.current.fitBounds(realPoly.getBounds(), { padding: [38, 38] });
     });
 
-    // Khởi tạo marker xe điện QSM
+    // Khởi tạo marker xe điện QSM với icon mũi tên hướng đầu có thể xoay
     const initialCarLatLng: [number, number] =
       driverLat !== undefined && driverLng !== undefined
         ? [driverLat, driverLng]
@@ -267,13 +316,13 @@ export default function RealRouteMap({
 
     const carIcon = L.divIcon({
       className: "qsm-map-car-icon",
-      html: `<div style="width:30px;height:30px;border-radius:50%;background:#051923;border:2px solid #00f5d4;display:flex;align-items:center;justify-content:center;color:#00f5d4;box-shadow:0 0 16px rgba(0,245,212,0.75);font-size:14px;">⚡</div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
+      html: `<div class="qsm-car-marker-wrap" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;transition:transform 0.35s ease-out;transform:rotate(0deg);"><div style="width:32px;height:32px;border-radius:50%;background:#051923;border:2.5px solid #00f5d4;display:flex;align-items:center;justify-content:center;color:#00f5d4;box-shadow:0 0 16px rgba(0,245,212,0.85);"><svg width="18" height="18" viewBox="0 0 24 24" fill="#00f5d4" stroke="#00f5d4" stroke-width="1.5"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg></div></div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     });
 
     driverMarkerRef.current = L.marker(initialCarLatLng, { icon: carIcon })
-      .bindPopup("Xe điện QSM đang hoạt động")
+      .bindPopup("Xe thuần điện QSM đang di chuyển theo lộ trình")
       .addTo(map);
 
     return () => {
@@ -286,6 +335,7 @@ export default function RealRouteMap({
     pickupLat,
     destLng,
     destLat,
+    stops,
     driverLng,
     driverLat,
     pickupName,
@@ -294,7 +344,7 @@ export default function RealRouteMap({
     interactivePick,
   ]);
 
-  // Cập nhật vị trí xe theo tiến độ hành trình
+  // Cập nhật vị trí xe và góc xoay đầu xe theo hướng đường (Smooth Bearing)
   useEffect(() => {
     if (!driverMarkerRef.current) return;
     const pts = routePathRef.current;
@@ -303,7 +353,22 @@ export default function RealRouteMap({
         pts.length - 1,
         Math.floor(progress * (pts.length - 1)),
       );
-      driverMarkerRef.current.setLatLng(pts[idx]);
+      const currentPt = pts[idx];
+      driverMarkerRef.current.setLatLng(currentPt);
+
+      // Tính góc xoay đầu xe theo góc tiếp tuyến giữa 2 điểm liên tiếp
+      const nextPt = pts[Math.min(pts.length - 1, idx + 1)];
+      const prevPt = pts[Math.max(0, idx - 1)];
+      const refPt = idx < pts.length - 1 ? nextPt : currentPt;
+      const basePt = idx < pts.length - 1 ? currentPt : prevPt;
+      const bearing = computeBearing(basePt[0], basePt[1], refPt[0], refPt[1]);
+
+      const el = driverMarkerRef.current
+        .getElement()
+        ?.querySelector(".qsm-car-marker-wrap") as HTMLElement | null;
+      if (el) {
+        el.style.transform = `rotate(${bearing}deg)`;
+      }
     } else if (driverCoords) {
       driverMarkerRef.current.setLatLng([driverCoords[1], driverCoords[0]]);
     } else {

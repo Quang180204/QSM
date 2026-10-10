@@ -52,6 +52,12 @@ apiRouter.get("/trips/:id/messages", requireAuth, (req, res) => {
 apiRouter.post("/trips/:id/messages", requireAuth, (req, res) => {
   tripController.sendMessage(req, res);
 });
+apiRouter.get("/vouchers", (req, res) => {
+  tripController.getVouchers(req, res);
+});
+apiRouter.post("/vouchers/apply", (req, res) => {
+  tripController.applyVoucher(req, res);
+});
 
 // ============================================================================
 // C. Phân hệ Quản trị viên (/api/admin) — Bảo vệ bằng requireAdmin
@@ -70,5 +76,17 @@ apiRouter.get("/admin/trips", requireAdmin, (req, res) => {
 });
 apiRouter.get("/admin/fleet", requireAdmin, (req, res) => {
   adminController.getFleet(req, res);
+});
+apiRouter.get("/admin/vouchers", requireAdmin, (req, res) => {
+  adminController.getVouchers(req, res);
+});
+apiRouter.post("/admin/vouchers", requireAdmin, (req, res) => {
+  adminController.createVoucher(req, res);
+});
+apiRouter.patch("/admin/vouchers/:code/toggle", requireAdmin, (req, res) => {
+  adminController.toggleVoucher(req, res);
+});
+apiRouter.delete("/admin/vouchers/:code", requireAdmin, (req, res) => {
+  adminController.deleteVoucher(req, res);
 });
 

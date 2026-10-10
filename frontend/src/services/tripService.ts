@@ -19,6 +19,8 @@ export interface BackendTripRecord {
   pickup_coords: [number, number];
   dest_address: string;
   dest_coords: [number, number];
+  stops?: Array<{ name: string; address: string; coords: [number, number] }>;
+  scheduled_at?: string | null;
   distance_km: number;
   duration_mins: number;
   fare_amount: number;
@@ -63,6 +65,8 @@ export const tripApiService = {
     pickup_coords: [number, number];
     dest_address: string;
     dest_coords: [number, number];
+    stops?: Array<{ name: string; address: string; coords: [number, number] }>;
+    scheduled_at?: string | null;
     distance_km: number;
     duration_mins: number;
     voucher_code?: string;
@@ -71,6 +75,35 @@ export const tripApiService = {
     return apiRequest<{ message: string; trip: BackendTripRecord }>("/trips/book", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  async getVouchers() {
+    return apiRequest<{
+      total: number;
+      vouchers: Array<{
+        code: string;
+        title: string;
+        discount_amount: number;
+        discount_type: "fixed" | "percent";
+        min_order_val?: number;
+        expires_at: string;
+        is_active: boolean;
+      }>;
+    }>("/vouchers");
+  },
+
+  async applyVoucher(code: string, fare_amount: number) {
+    return apiRequest<{
+      valid: boolean;
+      code: string;
+      title: string;
+      discount_amount: number;
+      min_order_val: number;
+      message: string;
+    }>("/vouchers/apply", {
+      method: "POST",
+      body: JSON.stringify({ code, fare_amount }),
     });
   },
 

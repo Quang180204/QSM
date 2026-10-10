@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { db } from "../../database/db.js";
 import type { DriverEntity, VehicleType } from "../models/entities.js";
 
 /**
@@ -35,8 +36,22 @@ export function calculateFare(
   const rawFare = Math.round((safeDistance * FARE_PER_KM[vehicleType]) / 1000) * 1000;
   const fareAmount = Math.max(BASE_MIN_FARE[vehicleType], rawFare);
   const code = voucherCode?.trim().toUpperCase() || "";
-  const discountAmount = VOUCHER_DISCOUNTS[code]
-    ? Math.min(VOUCHER_DISCOUNTS[code], fareAmount - 15000)
+
+  let discountVal = VOUCHER_DISCOUNTS[code] || 0;
+  if (db?.data?.vouchers) {
+    const vMatch = db.data.vouchers.find((v) => v.code === code && v.is_active);
+    if (vMatch) {
+      if (!vMatch.min_order_val || fareAmount >= vMatch.min_order_val) {
+        discountVal =
+          vMatch.discount_type === "percent"
+            ? Math.round((fareAmount * vMatch.discount_amount) / 100)
+            : vMatch.discount_amount;
+      }
+    }
+  }
+
+  const discountAmount = discountVal
+    ? Math.min(discountVal, fareAmount - 15000)
     : 0;
   const finalAmount = Math.max(15000, fareAmount - discountAmount);
 

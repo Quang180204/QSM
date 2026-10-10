@@ -193,4 +193,102 @@ export const adminController = {
       drivers,
     });
   },
+
+  getVouchers(_req: AuthenticatedRequest, res: Response): void {
+    const list = db.data.vouchers || [];
+    res.json({ total: list.length, vouchers: list });
+  },
+
+  createVoucher(req: AuthenticatedRequest, res: Response): void {
+    const {
+      code,
+      title,
+      discount_amount,
+      discount_type,
+      min_order_val,
+      expires_at,
+      max_usage,
+    } = req.body as {
+      code?: string;
+      title?: string;
+      discount_amount?: number;
+      discount_type?: "fixed" | "percent";
+      min_order_val?: number;
+      expires_at?: string;
+      max_usage?: number;
+    };
+
+    if (!code?.trim() || !title?.trim() || !discount_amount) {
+      res.status(400).json({ message: "Vui lòng nhập đầy đủ mã, tiêu đề và mức giảm giá." });
+      return;
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    if (!db.data.vouchers) db.data.vouchers = [];
+
+    const existing = db.data.vouchers.find((v) => v.code === cleanCode);
+    if (existing) {
+      res.status(400).json({ message: `Mã ưu đãi "${cleanCode}" đã tồn tại.` });
+      return;
+    }
+
+    const newVoucher = {
+      code: cleanCode,
+      title: title.trim(),
+      discount_amount: Number(discount_amount),
+      discount_type: discount_type === "percent" ? "percent" as const : "fixed" as const,
+      min_order_val: min_order_val ? Number(min_order_val) : 0,
+      expires_at: expires_at || "2026-12-31T23:59:59.000Z",
+      is_active: true,
+      usage_count: 0,
+      max_usage: max_usage ? Number(max_usage) : 500,
+    };
+
+    db.data.vouchers.unshift(newVoucher);
+    db.save();
+
+    res.status(201).json({
+      message: `Đã tạo thành công mã ưu đãi "${cleanCode}".`,
+      voucher: newVoucher,
+    });
+  },
+
+  toggleVoucher(req: AuthenticatedRequest, res: Response): void {
+    const { code } = req.params;
+    if (!code) {
+      res.status(400).json({ message: "Thiếu mã ưu đãi." });
+      return;
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const vMatch = (db.data.vouchers || []).find((v) => v.code === cleanCode);
+    if (!vMatch) {
+      res.status(404).json({ message: `Không tìm thấy mã ưu đãi "${cleanCode}".` });
+      return;
+    }
+    vMatch.is_active = !vMatch.is_active;
+    db.save();
+
+    res.json({
+      message: `Đã ${vMatch.is_active ? "kích hoạt" : "tạm dừng"} mã ưu đãi "${cleanCode}".`,
+      voucher: vMatch,
+    });
+  },
+
+  deleteVoucher(req: AuthenticatedRequest, res: Response): void {
+    const { code } = req.params;
+    if (!code) {
+      res.status(400).json({ message: "Thiếu mã ưu đãi." });
+      return;
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const idx = (db.data.vouchers || []).findIndex((v) => v.code === cleanCode);
+    if (idx === -1) {
+      res.status(404).json({ message: `Không tìm thấy mã ưu đãi "${cleanCode}".` });
+      return;
+    }
+    db.data.vouchers.splice(idx, 1);
+    db.save();
+
+    res.json({ message: `Đã xóa mã ưu đãi "${cleanCode}".` });
+  },
 };
