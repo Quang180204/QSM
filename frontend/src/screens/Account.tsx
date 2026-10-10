@@ -111,25 +111,27 @@ export default function Account() {
       {/* Quick Theme Switcher Card */}
       <section className="theme-switcher-card">
         <div className="theme-switcher-info">
-          <span className="theme-icon-box">
+          <div className="theme-icon-box">
             {theme === "dark" ? (
-              <Sun size={20} className="sun-icon" />
+              <Sun size={20} className="sun-icon animate-glow" />
             ) : (
               <Moon size={20} className="moon-icon" />
             )}
-          </span>
-          <div>
-            <strong>
+          </div>
+          <div className="theme-text-block">
+            <strong className="theme-mode-title">
               Giao diện:{" "}
-              {theme === "dark"
-                ? "Chế độ Tối (Galaxy Cyber)"
-                : "Chế độ Sáng (Solar Cyan)"}
+              <span className="theme-mode-highlight">
+                {theme === "dark"
+                  ? "Chế độ Tối (Galaxy Cyber)"
+                  : "Chế độ Sáng (Solar Cyan)"}
+              </span>
             </strong>
-            <small>
+            <span className="theme-mode-desc">
               {theme === "dark"
                 ? "Ánh sáng công nghệ Cyan, tối ưu hiển thị ban đêm"
                 : "Thanh lịch, độ tương phản cao ngoài trời"}
-            </small>
+            </span>
           </div>
         </div>
         <button
@@ -138,7 +140,17 @@ export default function Account() {
           onClick={toggleTheme}
           aria-label="Đổi giao diện sáng/tối"
         >
-          {theme === "dark" ? "Bật đèn" : "Tắt đèn"}
+          {theme === "dark" ? (
+            <>
+              <Sun size={15} />
+              <span>Bật đèn</span>
+            </>
+          ) : (
+            <>
+              <Moon size={15} />
+              <span>Tắt đèn</span>
+            </>
+          )}
         </button>
       </section>
 
