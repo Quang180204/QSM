@@ -27,6 +27,9 @@ import {
   Sun,
   Moon,
   Send,
+  ArrowUpDown,
+  LocateFixed,
+  Edit3,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
@@ -34,16 +37,20 @@ import { useAuth } from "../state/AuthProvider";
 import { useTheme } from "../state/ThemeContext";
 import { isActiveTrip } from "../state/rideMachine";
 import {
+  calculateVehicleFare,
+  computeRouteFromPlaces,
   driver,
+  locationDirectory,
   money,
   popularRoutes,
   vehicleById,
   vehicles,
 } from "../data/catalog";
-import type { Route, VehicleId } from "../data/catalog";
+import type { Place, Route, VehicleId } from "../data/catalog";
 import RouteMap from "../components/RouteMap";
 import { RouteDetails } from "../components/RouteDetails";
 import Modal from "../components/Modal";
+import LocationPickerModal from "../components/LocationPickerModal";
 import { tripApiService, type DriverMessageItem } from "../services/tripService";
 
 const tripStepTitles = {
@@ -83,6 +90,9 @@ export default function Trip() {
   );
   const [paymentMethod, setPaymentMethod] = useState("Ví QSM Pay");
   const [promoApplied, setPromoApplied] = useState(true);
+  const [pickerMode, setPickerMode] = useState<"pickup" | "destination" | null>(
+    null,
+  );
 
   // In-cabin comfort preferences
   const [cabinTemp, setCabinTemp] = useState(23);
@@ -281,14 +291,52 @@ export default function Trip() {
       });
   };
 
-  const currentFare =
-    selectedVehicleId === "bike"
-      ? 72000
-      : selectedVehicleId === "vf5"
-        ? 128000
-        : 185000;
+  const handleUpdateRoute = (nextRoute: Route) => {
+    setSelectedRoute(nextRoute);
+    dispatch({ type: "SET_ROUTE", route: nextRoute });
+  };
+
+  const handleQuickGpsLocate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!navigator.geolocation) {
+      notify("Thiết bị chưa hỗ trợ định vị GPS tự động.");
+      return;
+    }
+    notify("Đang định vị GPS điểm đón của bạn...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords: [number, number] = [
+          Number(pos.coords.longitude.toFixed(5)),
+          Number(pos.coords.latitude.toFixed(5)),
+        ];
+        const gpsPlace: Place = {
+          name: "Vị trí GPS hiện tại",
+          address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
+          coords,
+        };
+        const nextRoute = computeRouteFromPlaces(
+          gpsPlace,
+          selectedRoute.destination,
+        );
+        handleUpdateRoute(nextRoute);
+        notify("Đã cập nhật điểm đón theo vị trí GPS hiện tại!");
+      },
+      () => {
+        setPickerMode("pickup");
+        notify("Vui lòng chọn điểm đón từ danh sách hoặc chạm lên bản đồ.");
+      },
+      { enableHighAccuracy: true, timeout: 5000 },
+    );
+  };
+
+  const activeRouteForFare =
+    active || complete ? ride.route : selectedRoute;
+  const currentFare = calculateVehicleFare(
+    selectedVehicleId,
+    activeRouteForFare.distance,
+  );
   const finalFare = promoApplied
-    ? Math.max(20000, currentFare - 25000)
+    ? Math.max(15000, currentFare - 25000)
     : currentFare;
 
   return (
@@ -318,7 +366,7 @@ export default function Trip() {
             <span>
               {active
                 ? "Định vị GPS trực tiếp"
-                : "Đội xe thuần điện QSM sẵn sàng · Đón ~2 phút"}
+                : "Chạm bản đồ hoặc ô địa chỉ để đổi Điểm đón / Điểm đến"}
             </span>
           </div>
         </div>
@@ -362,18 +410,32 @@ export default function Trip() {
                   : "pickup"
           }
           progress={progress}
+          interactivePick={!active && !complete}
           onGpsLocate={(coords, label) => {
             if (!active && !complete) {
-              setSelectedRoute((prev) => ({
-                ...prev,
-                pickup: {
-                  name: label,
-                  address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
-                  coords,
-                },
-              }));
+              const gpsPlace: Place = {
+                name: label,
+                address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
+                coords,
+              };
+              handleUpdateRoute(
+                computeRouteFromPlaces(gpsPlace, selectedRoute.destination),
+              );
               notify("Đã cập nhật điểm đón theo vị trí GPS thiết bị của bạn!");
             }
+          }}
+          onMapSelectPlace={(target, place) => {
+            if (active || complete) return;
+            const nextRoute =
+              target === "pickup"
+                ? computeRouteFromPlaces(place, selectedRoute.destination)
+                : computeRouteFromPlaces(selectedRoute.pickup, place);
+            handleUpdateRoute(nextRoute);
+            notify(
+              target === "pickup"
+                ? `Đã ghim điểm đón mới: ${place.name}`
+                : `Đã ghim điểm đến mới: ${place.name}`,
+            );
           }}
         />
 
@@ -394,30 +456,134 @@ export default function Trip() {
             =================================================================== */}
         {!active && !complete ? (
           <div className="prebooking-panel">
-            {/* Route Selector */}
-            <div className="route-select-box">
-              <div className="route-point pickup-point">
+            {/* Interactive Route Selector (Pickup & Destination) */}
+            <div className="route-select-box interactive">
+              <div
+                className="route-point pickup-point clickable-point"
+                role="button"
+                tabIndex={0}
+                onClick={() => setPickerMode("pickup")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    setPickerMode("pickup");
+                }}
+              >
                 <span className="point-dot pickup" />
                 <div className="point-info">
-                  <small>Điểm đón (Có thể định vị GPS trên bản đồ)</small>
+                  <small>Điểm đón · Chạm để đổi hoặc ghim trên bản đồ</small>
                   <strong>{selectedRoute.pickup.name}</strong>
                   <span>{selectedRoute.pickup.address}</span>
                 </div>
+                <div className="point-actions">
+                  <button
+                    type="button"
+                    className="point-mini-btn gps"
+                    onClick={handleQuickGpsLocate}
+                    title="Lấy vị trí GPS hiện tại làm điểm đón"
+                  >
+                    <LocateFixed size={14} />
+                    <span>GPS</span>
+                  </button>
+                  <span className="point-edit-pill">
+                    <Edit3 size={12} />
+                    Đổi
+                  </span>
+                </div>
               </div>
-              <div className="route-divider" />
-              <div className="route-point destination-point">
+
+              <div className="route-divider-with-swap">
+                <div className="route-divider" />
+                <button
+                  type="button"
+                  className="route-swap-circle-btn"
+                  title="Đảo chiều điểm đón và điểm đến"
+                  onClick={() => {
+                    const swapped = computeRouteFromPlaces(
+                      selectedRoute.destination,
+                      selectedRoute.pickup,
+                    );
+                    handleUpdateRoute(swapped);
+                    notify("Đã đảo chiều Điểm đón ⇄ Điểm đến.");
+                  }}
+                >
+                  <ArrowUpDown size={14} />
+                </button>
+              </div>
+
+              <div
+                className="route-point destination-point clickable-point"
+                role="button"
+                tabIndex={0}
+                onClick={() => setPickerMode("destination")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    setPickerMode("destination");
+                }}
+              >
                 <span className="point-dot dest" />
                 <div className="point-info">
-                  <small>Điểm đến</small>
+                  <small>Điểm đến · Chạm để tìm địa chỉ khác</small>
                   <strong>{selectedRoute.destination.name}</strong>
                   <span>{selectedRoute.destination.address}</span>
                 </div>
+                <div className="point-actions">
+                  <span className="point-edit-pill">
+                    <Edit3 size={12} />
+                    Đổi
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Pickup Locations Carousel */}
+            <div className="quick-dest-list">
+              <div className="quick-dest-header-row">
+                <span className="quick-dest-title">Chọn nhanh Điểm đón:</span>
+                <button
+                  type="button"
+                  className="quick-open-picker-link"
+                  onClick={() => setPickerMode("pickup")}
+                >
+                  Tìm kiếm tất cả ({locationDirectory.length} điểm) ➔
+                </button>
+              </div>
+              <div className="quick-dest-scroll">
+                {locationDirectory.slice(0, 8).map((place) => {
+                  const isSelected =
+                    selectedRoute.pickup.name === place.name;
+                  return (
+                    <button
+                      key={`pickup-${place.name}`}
+                      type="button"
+                      className={`dest-chip pickup-chip ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        const next = computeRouteFromPlaces(
+                          place,
+                          selectedRoute.destination,
+                        );
+                        handleUpdateRoute(next);
+                      }}
+                    >
+                      <LocateFixed size={12} />
+                      <span>{place.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Quick Destinations Carousel */}
             <div className="quick-dest-list">
-              <span className="quick-dest-title">Lộ trình phổ biến tại Hà Nội:</span>
+              <div className="quick-dest-header-row">
+                <span className="quick-dest-title">Chọn nhanh Điểm đến:</span>
+                <button
+                  type="button"
+                  className="quick-open-picker-link"
+                  onClick={() => setPickerMode("destination")}
+                >
+                  Nhập địa chỉ khác ➔
+                </button>
+              </div>
               <div className="quick-dest-scroll">
                 {popularRoutes.map((r) => {
                   const isSelected =
@@ -427,7 +593,14 @@ export default function Trip() {
                       key={r.destination.name}
                       type="button"
                       className={`dest-chip ${isSelected ? "selected" : ""}`}
-                      onClick={() => setSelectedRoute(r)}
+                      onClick={() =>
+                        handleUpdateRoute(
+                          computeRouteFromPlaces(
+                            selectedRoute.pickup,
+                            r.destination,
+                          ),
+                        )
+                      }
                     >
                       <MapPin size={13} />
                       <span>{r.destination.name}</span>
@@ -441,17 +614,16 @@ export default function Trip() {
             {/* Vehicle Selection Cards */}
             <div className="service-tier-selection">
               <span className="tier-header-label">
-                Chọn dịch vụ xe thuần điện QSM:
+                Chọn dịch vụ xe thuần điện QSM ({selectedRoute.distance} km · ~
+                {selectedRoute.duration} phút):
               </span>
               <div className="vehicle-tier-list">
                 {vehicles.map((vItem) => {
                   const isChosen = selectedVehicleId === vItem.id;
-                  const itemFare =
-                    vItem.id === "bike"
-                      ? 72000
-                      : vItem.id === "vf5"
-                        ? 128000
-                        : 185000;
+                  const itemFare = calculateVehicleFare(
+                    vItem.id,
+                    selectedRoute.distance,
+                  );
                   return (
                     <div
                       key={vItem.id}
@@ -1263,6 +1435,16 @@ export default function Trip() {
             </div>
           )}
         </Modal>
+      )}
+
+      {pickerMode && (
+        <LocationPickerModal
+          initialMode={pickerMode}
+          currentRoute={selectedRoute}
+          onSelectRoute={(nextRoute) => handleUpdateRoute(nextRoute)}
+          onClose={() => setPickerMode(null)}
+          onNotify={notify}
+        />
       )}
     </div>
   );

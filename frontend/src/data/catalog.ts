@@ -87,10 +87,18 @@ export const money = (v: number) =>
 export const vehicleById = (id: VehicleId) =>
   vehicles.find((v) => v.id === id) || vehicles[1];
 
+export type PlaceCategory =
+  | "Khu đô thị"
+  | "TT Thương mại"
+  | "Sân bay & Bến xe"
+  | "Trường & Bệnh viện"
+  | "Điểm trung tâm";
+
 export interface Place {
   name: string;
   address: string;
   coords: [number, number]; // [lng, lat]
+  category?: PlaceCategory;
 }
 
 export interface Route {
@@ -100,75 +108,162 @@ export interface Route {
   duration: number;
 }
 
-export const defaultRoute: Route = {
-  pickup: {
+export const locationDirectory: Place[] = [
+  {
     name: "VinUniversity",
     address: "Vinhomes Ocean Park, Gia Lâm, Hà Nội",
     coords: [105.9445, 20.9905],
+    category: "Trường & Bệnh viện",
   },
-  destination: {
+  {
     name: "Times City",
     address: "458 Minh Khai, Hai Bà Trưng, Hà Nội",
     coords: [105.8685, 20.9962],
+    category: "Khu đô thị",
   },
+  {
+    name: "Vinhomes Royal City",
+    address: "72A Nguyễn Trãi, Thanh Xuân, Hà Nội",
+    coords: [105.8155, 21.0025],
+    category: "Khu đô thị",
+  },
+  {
+    name: "Vinhomes Smart City",
+    address: "Đại lộ Thăng Long, Nam Từ Liêm, Hà Nội",
+    coords: [105.7418, 21.0052],
+    category: "Khu đô thị",
+  },
+  {
+    name: "Highlands Bà Triệu",
+    address: "127 Bà Triệu, Hai Bà Trưng, Hà Nội",
+    coords: [105.8492, 21.0124],
+    category: "Điểm trung tâm",
+  },
+  {
+    name: "Hồ Hoàn Kiếm (Phố đi bộ)",
+    address: "Đinh Tiên Hoàng, Hoàn Kiếm, Hà Nội",
+    coords: [105.8525, 21.0285],
+    category: "Điểm trung tâm",
+  },
+  {
+    name: "Nhà Hát Lớn Hà Nội",
+    address: "Số 1 Tràng Tiền, Hoàn Kiếm, Hà Nội",
+    coords: [105.8577, 21.0244],
+    category: "Điểm trung tâm",
+  },
+  {
+    name: "Vincom Center Metropolis",
+    address: "29 Liễu Giai, Ba Đình, Hà Nội",
+    coords: [105.8141, 21.0318],
+    category: "TT Thương mại",
+  },
+  {
+    name: "Lotte Mall West Lake",
+    address: "272 Võ Chí Công, Tây Hồ, Hà Nội",
+    coords: [105.8091, 21.0764],
+    category: "TT Thương mại",
+  },
+  {
+    name: "Aeon Mall Long Biên",
+    address: "27 Cổ Linh, Long Biên, Hà Nội",
+    coords: [105.9012, 21.0268],
+    category: "TT Thương mại",
+  },
+  {
+    name: "Keangnam Landmark 72",
+    address: "Phạm Hùng, Nam Từ Liêm, Hà Nội",
+    coords: [105.7841, 21.0168],
+    category: "Điểm trung tâm",
+  },
+  {
+    name: "Sân bay Nội Bài (Ga T1/T2)",
+    address: "Phú Minh, Sóc Sơn, Hà Nội",
+    coords: [105.8042, 21.2187],
+    category: "Sân bay & Bến xe",
+  },
+  {
+    name: "Ga Hà Nội",
+    address: "120 Lê Duẩn, Đống Đa, Hà Nội",
+    coords: [105.8411, 21.0242],
+    category: "Sân bay & Bến xe",
+  },
+  {
+    name: "Bến xe Mỹ Đình",
+    address: "20 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội",
+    coords: [105.7785, 21.0288],
+    category: "Sân bay & Bến xe",
+  },
+  {
+    name: "Đại học Bách Khoa Hà Nội",
+    address: "Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội",
+    coords: [105.8431, 21.0051],
+    category: "Trường & Bệnh viện",
+  },
+  {
+    name: "Bệnh viện Đa khoa Quốc tế Vinmec",
+    address: "458 Minh Khai, Hai Bà Trưng, Hà Nội",
+    coords: [105.8698, 20.9972],
+    category: "Trường & Bệnh viện",
+  },
+];
+
+export function computeRouteFromPlaces(pickup: Place, destination: Place): Route {
+  const [lng1, lat1] = pickup.coords;
+  const [lng2, lat2] = destination.coords;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const roadDist = Math.max(1.2, Number((R * c * 1.28).toFixed(1)));
+  const duration = Math.max(4, Math.round(roadDist * 1.9 + 2));
+
+  return {
+    pickup,
+    destination,
+    distance: roadDist,
+    duration,
+  };
+}
+
+export function calculateVehicleFare(
+  vehicleId: VehicleId,
+  distanceKm: number,
+): number {
+  const v = vehicleById(vehicleId);
+  const minFare =
+    vehicleId === "bike" ? 25000 : vehicleId === "vf5" ? 45000 : 85000;
+  const raw = Math.round((Math.max(1, distanceKm) * v.ratePerKm) / 1000) * 1000;
+  return Math.max(minFare, raw);
+}
+
+export const defaultRoute: Route = {
+  pickup: locationDirectory[0],
+  destination: locationDirectory[1],
   distance: 11.5,
   duration: 22,
 };
 
 export const popularRoutes: Route[] = [
+  defaultRoute,
   {
-    pickup: {
-      name: "VinUniversity",
-      address: "Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      coords: [105.9445, 20.9905],
-    },
-    destination: {
-      name: "Times City",
-      address: "458 Minh Khai, Hai Bà Trưng, Hà Nội",
-      coords: [105.8685, 20.9962],
-    },
-    distance: 11.5,
-    duration: 22,
-  },
-  {
-    pickup: {
-      name: "VinUniversity",
-      address: "Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      coords: [105.9445, 20.9905],
-    },
-    destination: {
-      name: "Highlands Bà Triệu",
-      address: "127 Bà Triệu, Hai Bà Trưng, Hà Nội",
-      coords: [105.8492, 21.0124],
-    },
+    pickup: locationDirectory[0],
+    destination: locationDirectory[4],
     distance: 7.2,
     duration: 18,
   },
   {
-    pickup: {
-      name: "VinUniversity",
-      address: "Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      coords: [105.9445, 20.9905],
-    },
-    destination: {
-      name: "Sân bay Nội Bài",
-      address: "Nhà ga T1/T2, Sóc Sơn, Hà Nội",
-      coords: [105.8042, 21.2187],
-    },
+    pickup: locationDirectory[0],
+    destination: locationDirectory[11],
     distance: 34.0,
     duration: 38,
   },
   {
-    pickup: {
-      name: "VinUniversity",
-      address: "Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-      coords: [105.9445, 20.9905],
-    },
-    destination: {
-      name: "Vincom Metropolis",
-      address: "29 Liễu Giai, Ba Đình, Hà Nội",
-      coords: [105.8141, 21.0318],
-    },
+    pickup: locationDirectory[0],
+    destination: locationDirectory[7],
     distance: 14.2,
     duration: 26,
   },

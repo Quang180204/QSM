@@ -4,8 +4,11 @@ import {
   Bell,
   BriefcaseBusiness,
   ChevronRight,
+  Edit3,
   Home as HomeIcon,
   Leaf,
+  LocateFixed,
+  MapPin,
   Navigation,
   Plane,
   ShieldAlert,
@@ -19,16 +22,27 @@ import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
 import { useAuth } from "../state/AuthProvider";
 import { useTheme } from "../state/ThemeContext";
-import { popularRoutes } from "../data/catalog";
+import {
+  computeRouteFromPlaces,
+  locationDirectory,
+  popularRoutes,
+  type Place,
+} from "../data/catalog";
 import VehicleShowcase3D from "../components/VehicleShowcase3D";
 import QsmLogo from "../components/QsmLogo";
+import LocationPickerModal from "../components/LocationPickerModal";
 
 export default function Home() {
-  const { history, dispatch, notify } = useRide();
+  const { ride, history, dispatch, notify } = useRide();
   const { user, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [destination, setDestination] = useState("");
+  const [pickerMode, setPickerMode] = useState<"pickup" | "destination" | null>(
+    null,
+  );
   const nav = useNavigate();
+
+  const currentRoute = ride.route || popularRoutes[0];
 
   const firstName = user?.name
     ? user.name.trim().split(/\s+/).slice(-1)[0]
@@ -44,22 +58,56 @@ export default function Home() {
 
   const handleSelectQuickDestination = (placeName: string) => {
     setDestination(placeName);
-    const matchedRoute =
+    const matchedDest =
+      locationDirectory.find((p) =>
+        p.name.toLowerCase().includes(placeName.toLowerCase()),
+      ) ||
       popularRoutes.find((r) =>
         r.destination.name.toLowerCase().includes(placeName.toLowerCase()),
-      ) || {
-        ...popularRoutes[0],
-        destination: {
-          name: placeName,
-          address: `${placeName}, Hà Nội`,
-          coords: [105.8542, 21.0285] as [number, number],
-        },
+      )?.destination || {
+        name: placeName,
+        address: `${placeName}, Hà Nội`,
+        coords: [105.8542, 21.0285] as [number, number],
       };
+
+    const nextRoute = computeRouteFromPlaces(currentRoute.pickup, matchedDest);
 
     dispatch({ type: "RESET" });
     dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
-    dispatch({ type: "SET_ROUTE", route: matchedRoute });
+    dispatch({ type: "SET_ROUTE", route: nextRoute });
     nav("/chuyen-di");
+  };
+
+  const handleHomeGpsPickup = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!navigator.geolocation) {
+      setPickerMode("pickup");
+      return;
+    }
+    notify("Đang lấy tọa độ GPS điểm đón của bạn...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords: [number, number] = [
+          Number(pos.coords.longitude.toFixed(5)),
+          Number(pos.coords.latitude.toFixed(5)),
+        ];
+        const gpsPlace: Place = {
+          name: "Vị trí GPS hiện tại",
+          address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
+          coords,
+        };
+        const updated = computeRouteFromPlaces(
+          gpsPlace,
+          currentRoute.destination,
+        );
+        dispatch({ type: "SET_ROUTE", route: updated });
+        notify("Đã cập nhật điểm đón theo GPS hiện tại!");
+      },
+      () => {
+        setPickerMode("pickup");
+      },
+      { enableHighAccuracy: true, timeout: 5000 },
+    );
   };
 
   return (
@@ -148,6 +196,41 @@ export default function Home() {
           </button>
         </section>
 
+        {/* Quick Pickup Selector Bar right on Home Screen */}
+        <div
+          className="home-pickup-bar"
+          role="button"
+          tabIndex={0}
+          onClick={() => setPickerMode("pickup")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setPickerMode("pickup");
+          }}
+        >
+          <div className="home-pickup-left">
+            <span className="home-pickup-dot" />
+            <div className="home-pickup-text">
+              <small>Điểm đón hiện tại (Chạm để đổi nhanh)</small>
+              <strong>{currentRoute.pickup.name}</strong>
+              <span>{currentRoute.pickup.address}</span>
+            </div>
+          </div>
+          <div className="home-pickup-actions">
+            <button
+              type="button"
+              className="point-mini-btn gps"
+              onClick={handleHomeGpsPickup}
+              title="Định vị GPS điểm đón hiện tại"
+            >
+              <LocateFixed size={13} />
+              <span>GPS</span>
+            </button>
+            <span className="point-edit-pill">
+              <Edit3 size={12} />
+              Đổi
+            </span>
+          </div>
+        </div>
+
         <form
           className="destination-search"
           onSubmit={(e) => {
@@ -165,6 +248,14 @@ export default function Home() {
               onChange={(e) => setDestination(e.target.value)}
             />
           </div>
+          <button
+            type="button"
+            className="search-open-modal-btn"
+            onClick={() => setPickerMode("destination")}
+            title="Chọn điểm đến từ danh mục địa điểm"
+          >
+            <MapPin size={17} />
+          </button>
           <button type="submit" aria-label="Tìm chuyến xe QSM">
             <ArrowRight size={21} />
           </button>
@@ -245,6 +336,22 @@ export default function Home() {
           Đi nhẹ hơn. Sống xanh hơn. Cùng QSM (Quick Smart Mobility).
         </p>
       </div>
+
+      {pickerMode && (
+        <LocationPickerModal
+          initialMode={pickerMode}
+          currentRoute={currentRoute}
+          onSelectRoute={(nextRoute) => {
+            dispatch({ type: "SET_ROUTE", route: nextRoute });
+            if (pickerMode === "destination") {
+              setDestination(nextRoute.destination.name);
+              nav("/chuyen-di");
+            }
+          }}
+          onClose={() => setPickerMode(null)}
+          onNotify={notify}
+        />
+      )}
     </>
   );
 }

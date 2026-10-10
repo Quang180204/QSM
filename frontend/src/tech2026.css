@@ -3868,3 +3868,510 @@ body {
   color: var(--brand);
   border: 1px solid var(--brand-border);
 }
+
+/* ==========================================================================
+   INTERACTIVE PICKUP & DESTINATION SELECTOR (HOME, TRIP, MAP & MODAL)
+   ========================================================================== */
+
+/* Home Screen Quick Pickup Selector Bar */
+.home-pickup-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-border);
+  box-shadow: var(--shadow-subtle);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.home-pickup-bar:hover {
+  border-color: var(--brand);
+  box-shadow: 0 0 20px var(--brand-glow);
+  transform: translateY(-1px);
+}
+
+.home-pickup-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.home-pickup-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 10px var(--brand);
+  flex-shrink: 0;
+}
+
+.home-pickup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.home-pickup-text small {
+  font-size: 11px;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.home-pickup-text strong {
+  font-size: 14px;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-pickup-text span {
+  font-size: 11.5px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-pickup-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.search-open-modal-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--brand-border);
+  background: var(--brand-subtle);
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  flex-shrink: 0;
+}
+
+.search-open-modal-btn:hover {
+  background: var(--brand);
+  color: var(--brand-on);
+}
+
+/* Interactive Route Select Box in Trip Screen */
+.route-select-box.interactive .clickable-point {
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  border: 1px solid transparent;
+}
+
+.route-select-box.interactive .clickable-point:hover {
+  background: var(--brand-subtle);
+  border-color: var(--brand-border);
+}
+
+.point-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.point-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--brand-border);
+  background: var(--bg-elevated);
+  color: var(--brand);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.point-mini-btn:hover {
+  background: var(--brand);
+  color: var(--brand-on);
+}
+
+.point-edit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--brand-subtle);
+  color: var(--brand);
+  border: 1px solid var(--brand-border);
+}
+
+.route-divider-with-swap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.route-divider-with-swap .route-divider {
+  flex: 1;
+  margin: 0;
+}
+
+.route-swap-circle-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--brand);
+  background: var(--bg-elevated);
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.22s ease, background 0.18s ease;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.route-swap-circle-btn:hover {
+  background: var(--brand);
+  color: var(--brand-on);
+  transform: rotate(180deg);
+}
+
+.quick-dest-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quick-open-picker-link {
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.quick-open-picker-link:hover {
+  text-decoration: underline;
+}
+
+/* On-Map Pin Mode Switcher Pill */
+.map-pin-mode-switcher {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 420;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 99px;
+  background: rgba(6, 16, 26, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--brand-border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.38);
+}
+
+.pin-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+}
+
+.pin-mode-btn.active {
+  background: var(--brand-gradient);
+  color: #03191e;
+  box-shadow: 0 2px 10px var(--brand-glow);
+}
+
+/* Location Picker Modal Content */
+.location-picker-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mode-toggle-group {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+}
+
+.mode-toggle-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.mode-toggle-btn.active {
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  box-shadow: 0 2px 10px var(--brand-glow);
+}
+
+.swap-route-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--brand-border);
+  background: var(--brand-subtle);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.swap-route-btn:hover {
+  background: var(--brand);
+  color: var(--brand-on);
+}
+
+.modal-current-route-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+}
+
+.route-preview-pill {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.route-preview-pill.focused {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+}
+
+.route-preview-pill small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-sub);
+}
+
+.route-preview-pill strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arrow-sep {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gps-quick-btn {
+  padding: 10px 14px !important;
+  font-size: 12.5px !important;
+}
+
+.picker-search-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--brand-border);
+}
+
+.picker-search-form:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 14px var(--brand-glow);
+}
+
+.picker-search-form .search-icon {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.picker-search-form input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-heading);
+  font-size: 13.5px;
+}
+
+.picker-apply-btn {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: none;
+  background: var(--brand-gradient);
+  color: var(--brand-on);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.picker-category-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.picker-cat-chip {
+  padding: 6px 11px;
+  border-radius: 99px;
+  border: 1px solid var(--line-color);
+  background: var(--bg-elevated);
+  color: var(--text-sub);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.picker-cat-chip.selected {
+  background: var(--brand-subtle);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.picker-places-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.picker-place-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.picker-place-item:hover,
+.picker-place-item.selected {
+  border-color: var(--brand);
+  background: var(--brand-subtle);
+}
+
+.place-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.place-item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.place-item-text strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-heading);
+}
+
+.place-item-text small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-item-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--brand);
+  color: var(--brand-on);
+  flex-shrink: 0;
+}
+
+.picker-empty-hint {
+  text-align: center;
+  padding: 14px;
+  color: var(--text-sub);
+  font-size: 13px;
+}
+

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { LocateFixed, MapPin, Navigation } from "lucide-react";
+import { locationDirectory, type Place } from "../data/catalog";
 
 export interface RealRouteMapProps {
   pickupCoords: [number, number]; // [lng, lat]
@@ -10,7 +11,12 @@ export interface RealRouteMapProps {
   driverCoords?: [number, number]; // [lng, lat]
   isDarkMode?: boolean;
   progress?: number;
+  interactivePick?: boolean;
   onGpsLocate?: (coords: [number, number], label: string) => void;
+  onMapSelectPlace?: (
+    target: "pickup" | "destination",
+    place: Place,
+  ) => void;
 }
 
 export async function fetchRealRoute(
@@ -47,6 +53,63 @@ export async function fetchRealRoute(
   }
 }
 
+async function resolveCoordsToPlace(
+  lng: number,
+  lat: number,
+  target: "pickup" | "destination",
+): Promise<Place> {
+  // Kiểm tra xem có gần địa điểm quen thuộc nào trong bán kính ~450m không
+  for (const item of locationDirectory) {
+    const dLng = Math.abs(item.coords[0] - lng);
+    const dLat = Math.abs(item.coords[1] - lat);
+    if (dLng < 0.004 && dLat < 0.004) {
+      return item;
+    }
+  }
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`,
+    );
+    if (res.ok) {
+      const data = (await res.json()) as {
+        name?: string;
+        display_name?: string;
+        address?: {
+          road?: string;
+          suburb?: string;
+          city_district?: string;
+          city?: string;
+        };
+      };
+      const road =
+        data.name ||
+        data.address?.road ||
+        data.address?.suburb ||
+        (target === "pickup" ? "Điểm đón trên bản đồ" : "Điểm đến trên bản đồ");
+      const shortAddr =
+        data.display_name?.split(",").slice(0, 3).join(",").trim() ||
+        `Tọa độ: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      return {
+        name: road,
+        address: shortAddr,
+        coords: [Number(lng.toFixed(5)), Number(lat.toFixed(5))],
+      };
+    }
+  } catch {
+    // Fallback
+  }
+
+  return {
+    name:
+      target === "pickup"
+        ? `Điểm đón (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+        : `Điểm đến (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+    address: `Tọa độ GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+    coords: [Number(lng.toFixed(5)), Number(lat.toFixed(5))],
+  };
+}
+
 export default function RealRouteMap({
   pickupCoords,
   destCoords,
@@ -55,17 +118,31 @@ export default function RealRouteMap({
   driverCoords,
   isDarkMode = true,
   progress = 0,
+  interactivePick = false,
   onGpsLocate,
+  onMapSelectPlace,
 }: RealRouteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routePathRef = useRef<[number, number][]>([]);
   const driverMarkerRef = useRef<L.Marker | null>(null);
   const [locating, setLocating] = useState(false);
+  const [pinTarget, setPinTarget] = useState<"pickup" | "destination">("pickup");
+  const pinTargetRef = useRef<"pickup" | "destination">("pickup");
+  const onMapSelectRef = useRef(onMapSelectPlace);
+
   const [routeMeta, setRouteMeta] = useState<{
     distanceKm: string;
     durationMins: number;
   } | null>(null);
+
+  useEffect(() => {
+    pinTargetRef.current = pinTarget;
+  }, [pinTarget]);
+
+  useEffect(() => {
+    onMapSelectRef.current = onMapSelectPlace;
+  }, [onMapSelectPlace]);
 
   const pickupLng = pickupCoords[0];
   const pickupLat = pickupCoords[1];
@@ -99,25 +176,58 @@ export default function RealRouteMap({
 
     const pickupIcon = L.divIcon({
       className: "qsm-map-pin-icon",
-      html: `<div style="width:18px;height:18px;border-radius:50%;background:#00f5d4;border:3px solid #ffffff;box-shadow:0 0 16px #00f5d4;"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9],
+      html: `<div style="width:20px;height:20px;border-radius:50%;background:#00f5d4;border:3px solid #ffffff;box-shadow:0 0 16px #00f5d4;cursor:grab;"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
     });
 
     const destIcon = L.divIcon({
       className: "qsm-map-pin-icon",
-      html: `<div style="width:18px;height:18px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 16px #10b981;"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9],
+      html: `<div style="width:20px;height:20px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 16px #10b981;cursor:grab;"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
     });
 
-    L.marker(pickupLatLng, { icon: pickupIcon })
+    const pMarker = L.marker(pickupLatLng, {
+      icon: pickupIcon,
+      draggable: interactivePick,
+    })
       .bindPopup(`<strong>Điểm đón:</strong> ${pickupName}`)
       .addTo(map);
 
-    L.marker(destLatLng, { icon: destIcon })
+    const dMarker = L.marker(destLatLng, {
+      icon: destIcon,
+      draggable: interactivePick,
+    })
       .bindPopup(`<strong>Điểm đến:</strong> ${destName}`)
       .addTo(map);
+
+    if (interactivePick) {
+      pMarker.on("dragend", () => {
+        const pos = pMarker.getLatLng();
+        void resolveCoordsToPlace(pos.lng, pos.lat, "pickup").then((place) => {
+          onMapSelectRef.current?.("pickup", place);
+        });
+      });
+
+      dMarker.on("dragend", () => {
+        const pos = dMarker.getLatLng();
+        void resolveCoordsToPlace(pos.lng, pos.lat, "destination").then(
+          (place) => {
+            onMapSelectRef.current?.("destination", place);
+          },
+        );
+      });
+
+      map.on("click", (ev: L.LeafletMouseEvent) => {
+        const target = pinTargetRef.current;
+        void resolveCoordsToPlace(ev.latlng.lng, ev.latlng.lat, target).then(
+          (place) => {
+            onMapSelectRef.current?.(target, place);
+          },
+        );
+      });
+    }
 
     // Vẽ đường cơ sở ngay lập tức
     const baseLine = L.polyline([pickupLatLng, destLatLng], {
@@ -181,6 +291,7 @@ export default function RealRouteMap({
     pickupName,
     destName,
     isDarkMode,
+    interactivePick,
   ]);
 
   // Cập nhật vị trí xe theo tiến độ hành trình
@@ -241,6 +352,28 @@ export default function RealRouteMap({
         <MapPin size={13} />
         {destName}
       </span>
+
+      {/* Chế độ chạm bản đồ chọn nhanh Điểm đón / Điểm đến */}
+      {interactivePick && (
+        <div className="map-pin-mode-switcher" style={{ zIndex: 500 }}>
+          <span>Chạm bản đồ chọn:</span>
+          <button
+            type="button"
+            className={pinTarget === "pickup" ? "active pickup" : ""}
+            onClick={() => setPinTarget("pickup")}
+          >
+            ● Điểm đón
+          </button>
+          <button
+            type="button"
+            className={pinTarget === "destination" ? "active dest" : ""}
+            onClick={() => setPinTarget("destination")}
+          >
+            ● Điểm đến
+          </button>
+        </div>
+      )}
+
       <span className="map-watermark" style={{ zIndex: 500 }}>
         {routeMeta
           ? `QSM GPS · ${routeMeta.distanceKm} km (~${routeMeta.durationMins} phút)`
@@ -258,4 +391,3 @@ export default function RealRouteMap({
     </div>
   );
 }
-
