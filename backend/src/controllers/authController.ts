@@ -141,16 +141,20 @@ export const authController = {
       return;
     }
 
-    const { name, phone, email, newPassword } = req.body as {
+    const { name, phone, email, newPassword, membership_tier } = req.body as {
       name?: string;
       phone?: string;
       email?: string;
       newPassword?: string;
+      membership_tier?: "standard" | "gold" | "platinum";
     };
 
     if (name?.trim()) found.name = name.trim();
     if (phone?.trim()) found.phone = phone.trim();
     if (email?.trim()) found.email = email.trim().toLowerCase();
+    if (membership_tier && ["standard", "gold", "platinum"].includes(membership_tier)) {
+      found.membership_tier = membership_tier;
+    }
     if (newPassword && newPassword.trim().length >= 4) {
       found.password_hash = await hashPassword(newPassword.trim());
     }

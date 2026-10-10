@@ -210,7 +210,8 @@
       "expires_at": "2026-12-31T23:59:59.000Z",
       "is_active": true,
       "usage_count": 142,
-      "max_usage": 1000
+      "max_usage": 1000,
+      "target_tier": "all"
     },
     {
       "code": "DIENGREEN",
@@ -221,7 +222,8 @@
       "expires_at": "2026-12-31T23:59:59.000Z",
       "is_active": true,
       "usage_count": 89,
-      "max_usage": 500
+      "max_usage": 500,
+      "target_tier": "all"
     },
     {
       "code": "QSMAIRPORT",
@@ -232,7 +234,8 @@
       "expires_at": "2026-12-31T23:59:59.000Z",
       "is_active": true,
       "usage_count": 65,
-      "max_usage": 300
+      "max_usage": 300,
+      "target_tier": "gold"
     },
     {
       "code": "VIPMEMBER",
@@ -243,7 +246,8 @@
       "expires_at": "2026-12-31T23:59:59.000Z",
       "is_active": true,
       "usage_count": 28,
-      "max_usage": 200
+      "max_usage": 200,
+      "target_tier": "platinum"
     }
   ]
 }

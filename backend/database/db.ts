@@ -209,6 +209,7 @@ export function createDefaultSeedData(): DatabaseStore {
         discount_amount: 25000,
         discount_type: "fixed",
         min_order_val: 40000,
+        target_tier: "all",
         expires_at: "2026-12-31T23:59:59.000Z",
         is_active: true,
         usage_count: 142,
@@ -220,6 +221,7 @@ export function createDefaultSeedData(): DatabaseStore {
         discount_amount: 30000,
         discount_type: "fixed",
         min_order_val: 50000,
+        target_tier: "all",
         expires_at: "2026-12-31T23:59:59.000Z",
         is_active: true,
         usage_count: 89,
@@ -231,6 +233,7 @@ export function createDefaultSeedData(): DatabaseStore {
         discount_amount: 50000,
         discount_type: "fixed",
         min_order_val: 120000,
+        target_tier: "gold",
         expires_at: "2026-12-31T23:59:59.000Z",
         is_active: true,
         usage_count: 65,
@@ -242,6 +245,7 @@ export function createDefaultSeedData(): DatabaseStore {
         discount_amount: 40000,
         discount_type: "fixed",
         min_order_val: 70000,
+        target_tier: "platinum",
         expires_at: "2026-12-31T23:59:59.000Z",
         is_active: true,
         usage_count: 28,
@@ -266,6 +270,18 @@ class LocalDatabase {
         if (!parsed.vouchers) {
           parsed.vouchers = createDefaultSeedData().vouchers;
           this.save(parsed);
+        } else {
+          // Migration: Đảm bảo phân quyền target_tier cho các voucher sẵn có
+          let hasMigrated = false;
+          for (const v of parsed.vouchers) {
+            if (!v.target_tier) {
+              if (v.code === "VIPMEMBER") v.target_tier = "platinum";
+              else if (v.code === "QSMAIRPORT") v.target_tier = "gold";
+              else v.target_tier = "all";
+              hasMigrated = true;
+            }
+          }
+          if (hasMigrated) this.save(parsed);
         }
         return parsed;
       } catch {

@@ -75,6 +75,7 @@ export interface AdminVoucherItem {
   discount_amount: number;
   discount_type: "fixed" | "percent";
   min_order_val?: number;
+  target_tier?: "all" | "gold" | "platinum";
   expires_at: string;
   is_active: boolean;
   usage_count: number;

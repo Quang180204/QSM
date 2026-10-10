@@ -108,6 +108,7 @@ export default function Admin() {
   const [voucherType, setVoucherType] = useState<"fixed" | "percent">("fixed");
   const [voucherMinOrder, setVoucherMinOrder] = useState("50000");
   const [voucherMaxUsage, setVoucherMaxUsage] = useState("500");
+  const [voucherTargetTier, setVoucherTargetTier] = useState<"all" | "gold" | "platinum">("all");
 
   const fetchAllAdminData = useCallback(async () => {
     setLoading(true);
@@ -239,6 +240,7 @@ export default function Admin() {
         discount_amount: Number(voucherDiscount) || 25000,
         discount_type: voucherType,
         min_order_val: Number(voucherMinOrder) || 0,
+        target_tier: voucherTargetTier,
         expires_at: "2026-12-31T23:59:59.000Z",
         max_usage: Number(voucherMaxUsage) || 500,
       });
@@ -247,6 +249,7 @@ export default function Admin() {
       setShowVoucherModal(false);
       setVoucherCode("");
       setVoucherTitle("");
+      setVoucherTargetTier("all");
     } catch (err) {
       notify(err instanceof Error ? err.message : "Không thể tạo mã ưu đãi.");
     }
@@ -970,6 +973,13 @@ export default function Admin() {
                     <span className="admin-role-badge admin">
                       <Tag size={12} /> {v.code}
                     </span>
+                    <span className={`admin-tier-chip tier-${v.target_tier || "all"}`}>
+                      {v.target_tier === "platinum"
+                        ? "👑 VIP Kim Cương"
+                        : v.target_tier === "gold"
+                          ? "🥇 Hạng Vàng+"
+                          : "🌐 Mọi khách hàng"}
+                    </span>
                     <strong>{v.title}</strong>
                     <span
                       className={`status-badge-modern ${v.is_active ? "active-status" : ""}`}
@@ -987,11 +997,21 @@ export default function Admin() {
 
                 <div className="admin-metrics-row">
                   <span>
+                    Đối tượng:{" "}
+                    <strong>
+                      {v.target_tier === "platinum"
+                        ? "Hội viên Kim Cương (VIP)"
+                        : v.target_tier === "gold"
+                          ? "Hạng Vàng & Kim Cương"
+                          : "Mọi hội viên"}
+                    </strong>
+                  </span>
+                  <span>
                     Đơn tối thiểu:{" "}
                     <strong>{v.min_order_val ? money(v.min_order_val) : "0đ"}</strong>
                   </span>
                   <span>
-                    Đã sử dụng:{" "}
+                    Đã dùng:{" "}
                     <strong>
                       {v.usage_count || 0} / {v.max_usage || 500} lượt
                     </strong>
@@ -1162,6 +1182,17 @@ export default function Admin() {
                 />
               </label>
             </div>
+            <label className="field">
+              <span>Phân quyền thứ hạng hội viên (Áp dụng cho ai)</span>
+              <select
+                value={voucherTargetTier}
+                onChange={(e) => setVoucherTargetTier(e.target.value as "all" | "gold" | "platinum")}
+              >
+                <option value="all">🌐 Mọi khách hàng (Tiêu chuẩn, Vàng, Kim Cương)</option>
+                <option value="gold">🥇 Hội viên Hạng Vàng & Kim Cương trở lên</option>
+                <option value="platinum">👑 Đặc quyền Hội viên Kim Cương (VIP) duy nhất</option>
+              </select>
+            </label>
             <button type="submit" className="button primary wide" style={{ marginTop: "8px" }}>
               <Plus size={16} />
               <span>Xác nhận phát hành mã ưu đãi</span>

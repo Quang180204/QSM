@@ -89,12 +89,15 @@ export interface TripMessageEntity {
   created_at: string;
 }
 
+export type VoucherTargetTier = "all" | "gold" | "platinum";
+
 export interface VoucherEntity {
   code: string;
   title: string;
   discount_amount: number;
   discount_type: "fixed" | "percent";
   min_order_val?: number;
+  target_tier?: VoucherTargetTier;
   expires_at: string;
   is_active: boolean;
   usage_count: number;

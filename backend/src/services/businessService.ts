@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { db } from "../../database/db.js";
-import type { DriverEntity, VehicleType } from "../models/entities.js";
+import type { DriverEntity, MembershipTier, VehicleType } from "../models/entities.js";
 
 /**
  * Bảng đơn giá cước tiêu chuẩn QSM 2026 (VNĐ / km)
@@ -27,21 +27,47 @@ export const VOUCHER_DISCOUNTS: Record<string, number> = {
   QSMVIP: 50000,
 };
 
+export const TIER_RANK: Record<string, number> = {
+  all: 0,
+  standard: 1,
+  gold: 2,
+  platinum: 3,
+};
+
+export const TIER_NAMES: Record<string, string> = {
+  all: "Tất cả khách hàng",
+  standard: "Hội viên Tiêu chuẩn",
+  gold: "Hội viên Hạng Vàng",
+  platinum: "Hội viên Kim Cương (VIP)",
+};
+
+export function isTierEligible(
+  userTier?: string,
+  requiredTier?: string,
+): boolean {
+  if (!requiredTier || requiredTier === "all") return true;
+  const userRank = TIER_RANK[userTier || "standard"] ?? 1;
+  const targetRank = TIER_RANK[requiredTier] ?? 0;
+  return userRank >= targetRank;
+}
+
 export function calculateFare(
   distanceKm: number,
   vehicleType: VehicleType,
   voucherCode?: string,
+  userTier?: MembershipTier,
 ) {
   const safeDistance = Math.max(1, Number(distanceKm) || 5);
   const rawFare = Math.round((safeDistance * FARE_PER_KM[vehicleType]) / 1000) * 1000;
   const fareAmount = Math.max(BASE_MIN_FARE[vehicleType], rawFare);
   const code = voucherCode?.trim().toUpperCase() || "";
 
-  let discountVal = VOUCHER_DISCOUNTS[code] || 0;
+  let discountVal = 0;
   if (db?.data?.vouchers) {
     const vMatch = db.data.vouchers.find((v) => v.code === code && v.is_active);
     if (vMatch) {
-      if (!vMatch.min_order_val || fareAmount >= vMatch.min_order_val) {
+      const eligibleTier = isTierEligible(userTier, vMatch.target_tier);
+      if (eligibleTier && (!vMatch.min_order_val || fareAmount >= vMatch.min_order_val)) {
         discountVal =
           vMatch.discount_type === "percent"
             ? Math.round((fareAmount * vMatch.discount_amount) / 100)

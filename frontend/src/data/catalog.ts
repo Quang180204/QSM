@@ -253,16 +253,43 @@ export function computeMultiStopRoute(
   };
 }
 
+export type VoucherTargetTier = "all" | "gold" | "platinum";
+
 export interface Voucher {
   code: string;
   title: string;
   discount_amount: number;
   discount_type: "fixed" | "percent";
   min_order_val?: number;
+  target_tier?: VoucherTargetTier;
   expires_at: string;
   is_active: boolean;
   usage_count?: number;
   max_usage?: number;
+}
+
+export const TIER_RANK: Record<string, number> = {
+  all: 0,
+  standard: 1,
+  gold: 2,
+  platinum: 3,
+};
+
+export const TIER_NAMES: Record<string, string> = {
+  all: "Tất cả khách hàng",
+  standard: "Hội viên Tiêu chuẩn",
+  gold: "Hội viên Hạng Vàng",
+  platinum: "Hội viên Kim Cương (VIP)",
+};
+
+export function isTierEligible(
+  userTier?: string,
+  requiredTier?: string,
+): boolean {
+  if (!requiredTier || requiredTier === "all") return true;
+  const userRank = TIER_RANK[userTier || "standard"] ?? 1;
+  const targetRank = TIER_RANK[requiredTier] ?? 0;
+  return userRank >= targetRank;
 }
 
 export const defaultVouchers: Voucher[] = [
@@ -272,6 +299,7 @@ export const defaultVouchers: Voucher[] = [
     discount_amount: 25000,
     discount_type: "fixed",
     min_order_val: 40000,
+    target_tier: "all",
     expires_at: "2026-12-31T23:59:59.000Z",
     is_active: true,
     usage_count: 142,
@@ -283,6 +311,7 @@ export const defaultVouchers: Voucher[] = [
     discount_amount: 30000,
     discount_type: "fixed",
     min_order_val: 50000,
+    target_tier: "all",
     expires_at: "2026-12-31T23:59:59.000Z",
     is_active: true,
     usage_count: 89,
@@ -294,6 +323,7 @@ export const defaultVouchers: Voucher[] = [
     discount_amount: 50000,
     discount_type: "fixed",
     min_order_val: 120000,
+    target_tier: "gold",
     expires_at: "2026-12-31T23:59:59.000Z",
     is_active: true,
     usage_count: 65,
@@ -305,6 +335,7 @@ export const defaultVouchers: Voucher[] = [
     discount_amount: 40000,
     discount_type: "fixed",
     min_order_val: 70000,
+    target_tier: "platinum",
     expires_at: "2026-12-31T23:59:59.000Z",
     is_active: true,
     usage_count: 28,

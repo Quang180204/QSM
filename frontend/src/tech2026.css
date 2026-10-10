@@ -4863,5 +4863,303 @@ body {
   font-size: 12.5px;
 }
 
+/* Tier RBAC Styles for Vouchers and Account Switcher */
+.voucher-user-tier-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-color);
+  border-radius: 12px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.voucher-user-tier-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-sub);
+}
+
+.user-tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-tier-pill.standard {
+  background: rgba(148, 163, 184, 0.16);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.user-tier-pill.gold {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.user-tier-pill.platinum {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.user-tier-pill.guest {
+  background: rgba(100, 116, 139, 0.16);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.voucher-login-link {
+  background: transparent;
+  border: none;
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity var(--transition-smooth);
+}
+
+.voucher-login-link:hover {
+  opacity: 0.8;
+}
+
+.voucher-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  margin-left: 6px;
+}
+
+.voucher-tier-badge.tier-gold {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.voucher-tier-badge.tier-platinum {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(139, 92, 246, 0.25) 100%);
+  color: #ec4899;
+  border: 1px solid rgba(236, 72, 153, 0.4);
+}
+
+.voucher-card-item.tier-locked {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.voucher-tier-lock-note {
+  font-size: 11.5px;
+  color: #ef4444;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.voucher-action-btn.locked {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: not-allowed;
+}
+
+/* Admin Tier Chips */
+.admin-tier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.admin-tier-chip.tier-all {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.admin-tier-chip.tier-gold {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.admin-tier-chip.tier-platinum {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* Demo Tier Switcher Card in Account.tsx */
+.demo-tier-switcher-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-color);
+  box-shadow: var(--shadow-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-tier-switcher-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #94a3b8 0%, #f59e0b 50%, #38bdf8 100%);
+}
+
+.demo-tier-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-tier-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  display: grid;
+  place-items: center;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.demo-tier-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.demo-tier-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.demo-tier-desc {
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+
+.demo-tier-btn-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .demo-tier-btn-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+.demo-tier-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--line-color);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.demo-tier-btn:hover {
+  border-color: var(--brand-border);
+  transform: translateY(-2px);
+}
+
+.demo-tier-btn.active.tier-standard {
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 14px rgba(148, 163, 184, 0.2);
+}
+
+.demo-tier-btn.active.tier-gold {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+}
+
+.demo-tier-btn.active.tier-platinum {
+  border-color: #38bdf8;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+}
+
+.tier-rank-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-sub);
+}
+
+.demo-tier-btn.active.tier-standard .tier-rank-pill {
+  background: rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+}
+
+.demo-tier-btn.active.tier-gold .tier-rank-pill {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.demo-tier-btn.active.tier-platinum .tier-rank-pill {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.tier-btn-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.tier-btn-sub {
+  font-size: 10.5px;
+  color: var(--text-sub);
+}
+
 
 

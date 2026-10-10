@@ -17,6 +17,8 @@ import {
   PhoneOff,
   Radio,
   RotateCcw,
+  Crown,
+  Lock,
   Send,
   ShieldCheck,
   Star,
@@ -45,9 +47,11 @@ import {
   computeRouteFromPlaces,
   defaultVouchers,
   driver,
+  isTierEligible,
   locationDirectory,
   money,
   popularRoutes,
+  TIER_NAMES,
   vehicleById,
   vehicles,
   type Place,
@@ -175,14 +179,26 @@ export default function Trip() {
       .then((res) => {
         if (res.vouchers && res.vouchers.length > 0) {
           setVouchersList(res.vouchers);
+          const currentTier = user?.membership_tier || "standard";
           const activeFirst =
-            res.vouchers.find((v) => v.code === "QSM2026" && v.is_active) ||
-            res.vouchers.find((v) => v.is_active);
-          if (activeFirst) setSelectedVoucher(activeFirst);
+            res.vouchers.find(
+              (v) =>
+                v.code === "QSM2026" &&
+                v.is_active &&
+                isTierEligible(currentTier, v.target_tier),
+            ) ||
+            res.vouchers.find(
+              (v) => v.is_active && isTierEligible(currentTier, v.target_tier),
+            );
+          if (activeFirst) {
+            setSelectedVoucher(activeFirst);
+          } else {
+            setSelectedVoucher(null);
+          }
         }
       })
       .catch(() => {});
-  }, []);
+  }, [user?.membership_tier]);
 
   useEffect(() => {
     if (started || complete) {
@@ -387,8 +403,10 @@ export default function Trip() {
     setVoucherLoading(true);
     setVoucherError("");
 
+    const currentTier = user?.membership_tier || "standard";
+
     try {
-      const res = await tripApiService.applyVoucher(code, currentFare);
+      const res = await tripApiService.applyVoucher(code, currentFare, currentTier);
       if (res.valid) {
         const found = vouchersList.find((v) => v.code === code) || {
           code,
@@ -396,6 +414,7 @@ export default function Trip() {
           discount_amount: res.discount_amount,
           discount_type: "fixed" as const,
           min_order_val: res.min_order_val,
+          target_tier: res.target_tier || "all",
           expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
           is_active: true,
         };
@@ -406,13 +425,19 @@ export default function Trip() {
       } else {
         setVoucherError(res.message || "Mã không hợp lệ hoặc không đủ điều kiện.");
       }
-    } catch {
+    } catch (err: unknown) {
       // Local fallback check
       const matched = vouchersList.find(
         (v) => v.code.toUpperCase() === code && v.is_active,
       );
       if (matched) {
-        if (matched.min_order_val && currentFare < matched.min_order_val) {
+        if (!isTierEligible(currentTier, matched.target_tier)) {
+          const reqName = TIER_NAMES[matched.target_tier || "all"] || matched.target_tier;
+          const curName = TIER_NAMES[currentTier] || currentTier;
+          setVoucherError(
+            `Mã "${matched.code}" là đặc quyền dành riêng cho ${reqName}. Thứ hạng của bạn là "${curName}". Hãy nâng hạng hội viên để tận hưởng đặc quyền!`,
+          );
+        } else if (matched.min_order_val && currentFare < matched.min_order_val) {
           setVoucherError(
             `Đơn hàng cần tối thiểu ${money(matched.min_order_val)} để áp dụng mã này.`,
           );
@@ -423,7 +448,11 @@ export default function Trip() {
           notify(`Áp dụng thành công mã ${matched.code}!`);
         }
       } else {
-        setVoucherError("Mã khuyến mãi không tồn tại hoặc đã hết hạn.");
+        setVoucherError(
+          err instanceof Error
+            ? err.message
+            : "Mã khuyến mãi không tồn tại hoặc đã hết hạn.",
+        );
       }
     } finally {
       setVoucherLoading(false);
@@ -470,13 +499,17 @@ export default function Trip() {
     selectedVehicleId,
     activeRouteForFare.distance,
   );
-  const voucherDiscount = selectedVoucher
-    ? selectedVoucher.min_order_val && currentFare < selectedVoucher.min_order_val
-      ? 0
-      : selectedVoucher.discount_type === "percent"
-        ? Math.round((currentFare * selectedVoucher.discount_amount) / 100)
-        : selectedVoucher.discount_amount
-    : 0;
+  const userTier = user?.membership_tier || "standard";
+  const isTierQualified =
+    selectedVoucher && isTierEligible(userTier, selectedVoucher.target_tier);
+  const voucherDiscount =
+    selectedVoucher && isTierQualified
+      ? selectedVoucher.min_order_val && currentFare < selectedVoucher.min_order_val
+        ? 0
+        : selectedVoucher.discount_type === "percent"
+          ? Math.round((currentFare * selectedVoucher.discount_amount) / 100)
+          : selectedVoucher.discount_amount
+      : 0;
   const finalFare = Math.max(15000, currentFare - voucherDiscount);
 
   return (
@@ -1765,6 +1798,46 @@ export default function Trip() {
               <div className="voucher-error-hint">{voucherError}</div>
             )}
 
+            {/* User Membership Tier Status Bar */}
+            <div className="voucher-user-tier-bar">
+              <div className="voucher-tier-info">
+                <span>Thứ hạng hội viên của bạn:</span>
+                <strong>
+                  {user ? (
+                    user.membership_tier === "platinum" ? (
+                      <span className="user-tier-pill platinum">
+                        <Crown size={13} /> Kim Cương (VIP)
+                      </span>
+                    ) : user.membership_tier === "gold" ? (
+                      <span className="user-tier-pill gold">
+                        <Star size={13} fill="#eab308" stroke="#eab308" /> Hạng Vàng
+                      </span>
+                    ) : (
+                      <span className="user-tier-pill standard">
+                        Hội viên Tiêu chuẩn
+                      </span>
+                    )
+                  ) : (
+                    <span className="user-tier-pill guest">
+                      Khách vãng lai (Chưa đăng nhập)
+                    </span>
+                  )}
+                </strong>
+              </div>
+              {!user && (
+                <button
+                  type="button"
+                  className="voucher-login-link"
+                  onClick={() => {
+                    setShowVoucherModal(false);
+                    nav("/dang-nhap");
+                  }}
+                >
+                  Đăng nhập để nhận mã VIP ➔
+                </button>
+              )}
+            </div>
+
             {/* List of Available Vouchers */}
             <div className="vouchers-list-scroll">
               <h4 className="vouchers-section-title">
@@ -1773,7 +1846,9 @@ export default function Trip() {
               <div className="voucher-cards-grid">
                 {vouchersList.map((voc) => {
                   const isApplied = selectedVoucher?.code === voc.code;
-                  const isEligible =
+                  const currentTier = user?.membership_tier || "standard";
+                  const hasTierAccess = isTierEligible(currentTier, voc.target_tier);
+                  const meetsMinOrder =
                     !voc.min_order_val || currentFare >= voc.min_order_val;
                   const discountDisplay =
                     voc.discount_type === "percent"
@@ -1783,7 +1858,13 @@ export default function Trip() {
                   return (
                     <div
                       key={voc.code}
-                      className={`voucher-card-item ${isApplied ? "applied" : ""} ${!isEligible ? "disabled" : ""}`}
+                      className={`voucher-card-item ${isApplied ? "applied" : ""} ${
+                        !hasTierAccess
+                          ? "tier-locked"
+                          : !meetsMinOrder
+                            ? "disabled"
+                            : ""
+                      }`}
                     >
                       <div className="voucher-card-left">
                         <div className="voucher-badge">
@@ -1792,7 +1873,15 @@ export default function Trip() {
                         </div>
                         <div className="voucher-details">
                           <h5 className="voucher-code-title">
-                            <code>{voc.code}</code> · {voc.title}
+                            <code>{voc.code}</code>
+                            {voc.target_tier && voc.target_tier !== "all" && (
+                              <span className={`voucher-tier-badge tier-${voc.target_tier}`}>
+                                {voc.target_tier === "platinum"
+                                  ? "👑 VIP Kim Cương"
+                                  : "🥇 Hạng Vàng+"}
+                              </span>
+                            )}
+                            <span> · {voc.title}</span>
                           </h5>
                           <span className="voucher-condition">
                             {voc.min_order_val
@@ -1802,7 +1891,12 @@ export default function Trip() {
                           <span className="voucher-expiry">
                             HSD: {new Date(voc.expires_at).toLocaleDateString("vi-VN")}
                           </span>
-                          {!isEligible && voc.min_order_val && (
+                          {!hasTierAccess && (
+                            <small className="voucher-tier-lock-note">
+                              <Lock size={12} /> Yêu cầu {TIER_NAMES[voc.target_tier || "all"]} (Bạn đang ở: {TIER_NAMES[currentTier]})
+                            </small>
+                          )}
+                          {hasTierAccess && !meetsMinOrder && voc.min_order_val && (
                             <small className="voucher-ineligible-note">
                               Cần thêm {money(voc.min_order_val - currentFare)} để sử dụng
                             </small>
@@ -1823,11 +1917,29 @@ export default function Trip() {
                             <Check size={14} />
                             <span>Đang dùng</span>
                           </button>
+                        ) : !hasTierAccess ? (
+                          <button
+                            type="button"
+                            className="voucher-action-btn locked"
+                            disabled
+                            title={`Cần thứ hạng ${TIER_NAMES[voc.target_tier || "all"]} để mở khóa mã này`}
+                          >
+                            <Lock size={13} />
+                            <span>Khóa VIP</span>
+                          </button>
+                        ) : !meetsMinOrder ? (
+                          <button
+                            type="button"
+                            className="voucher-action-btn select"
+                            disabled
+                            title={`Cần tối thiểu ${money(voc.min_order_val || 0)}`}
+                          >
+                            Chưa đủ đơn
+                          </button>
                         ) : (
                           <button
                             type="button"
                             className="voucher-action-btn select"
-                            disabled={!isEligible}
                             onClick={() => {
                               setSelectedVoucher(voc);
                               setShowVoucherModal(false);

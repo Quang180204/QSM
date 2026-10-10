@@ -206,6 +206,7 @@ export const adminController = {
       discount_amount,
       discount_type,
       min_order_val,
+      target_tier,
       expires_at,
       max_usage,
     } = req.body as {
@@ -214,6 +215,7 @@ export const adminController = {
       discount_amount?: number;
       discount_type?: "fixed" | "percent";
       min_order_val?: number;
+      target_tier?: "all" | "gold" | "platinum";
       expires_at?: string;
       max_usage?: number;
     };
@@ -238,6 +240,7 @@ export const adminController = {
       discount_amount: Number(discount_amount),
       discount_type: discount_type === "percent" ? "percent" as const : "fixed" as const,
       min_order_val: min_order_val ? Number(min_order_val) : 0,
+      target_tier: target_tier || "all",
       expires_at: expires_at || "2026-12-31T23:59:59.000Z",
       is_active: true,
       usage_count: 0,

@@ -42,6 +42,7 @@ export const tripApiService = {
     dest_coords?: [number, number];
     vehicle_type: string;
     voucher_code?: string;
+    user_tier?: string;
   }) {
     return apiRequest<{
       selected: {
@@ -87,23 +88,25 @@ export const tripApiService = {
         discount_amount: number;
         discount_type: "fixed" | "percent";
         min_order_val?: number;
+        target_tier?: "all" | "gold" | "platinum";
         expires_at: string;
         is_active: boolean;
       }>;
     }>("/vouchers");
   },
 
-  async applyVoucher(code: string, fare_amount: number) {
+  async applyVoucher(code: string, fare_amount: number, user_tier?: string) {
     return apiRequest<{
       valid: boolean;
       code: string;
       title: string;
+      target_tier?: "all" | "gold" | "platinum";
       discount_amount: number;
       min_order_val: number;
       message: string;
     }>("/vouchers/apply", {
       method: "POST",
-      body: JSON.stringify({ code, fare_amount }),
+      body: JSON.stringify({ code, fare_amount, user_tier }),
     });
   },
 

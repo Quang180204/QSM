@@ -23,10 +23,11 @@ interface AuthContextValue {
     password: string;
   }) => Promise<AuthUser>;
   updateProfile: (payload: {
-    name: string;
+    name?: string;
     phone?: string;
     email?: string;
     newPassword?: string;
+    membership_tier?: "standard" | "gold" | "platinum";
   }) => Promise<AuthUser>;
   logout: () => void;
 }
@@ -60,10 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (payload: {
-    name: string;
+    name?: string;
     phone?: string;
     email?: string;
     newPassword?: string;
+    membership_tier?: "standard" | "gold" | "platinum";
   }) => {
     const updated = await authService.updateProfile(payload);
     setUser(updated);

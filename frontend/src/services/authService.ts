@@ -176,10 +176,11 @@ export const authService = {
   },
 
   async updateProfile(payload: {
-    name: string;
+    name?: string;
     phone?: string;
     email?: string;
     newPassword?: string;
+    membership_tier?: "standard" | "gold" | "platinum";
   }): Promise<AuthUser> {
     try {
       const res = await apiRequest<{ user: AuthUser }>("/users/profile", {
@@ -197,6 +198,7 @@ export const authService = {
         name: payload.name || current.name,
         phone: payload.phone || current.phone,
         email: payload.email || current.email,
+        membership_tier: payload.membership_tier || current.membership_tier,
       };
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
       return updated;

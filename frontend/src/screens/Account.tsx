@@ -16,6 +16,7 @@ import {
   Moon,
   Sparkles,
   Phone,
+  Crown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRide } from "../state/RideProvider";
@@ -64,6 +65,24 @@ export default function Account() {
     setSection(label);
   };
 
+  const handleSwitchTier = async (newTier: "standard" | "gold" | "platinum") => {
+    if (!user) {
+      notify("Vui lòng đăng nhập để trải nghiệm phân quyền hội viên!");
+      return;
+    }
+    try {
+      await updateProfile({ membership_tier: newTier });
+      const tierLabels = {
+        standard: "Hội viên Tiêu chuẩn (Standard)",
+        gold: "Hội viên Hạng Vàng (Gold)",
+        platinum: "Hội viên Kim Cương VIP (Platinum)",
+      };
+      notify(`Đã chuyển đổi sang ${tierLabels[newTier]} thành công!`);
+    } catch (err) {
+      notify("Không thể cập nhật thứ hạng: " + (err instanceof Error ? err.message : "Lỗi"));
+    }
+  };
+
   return (
     <div className="standard-screen">
       <header className="page-heading">
@@ -106,6 +125,53 @@ export default function Account() {
             <span>Mở Cổng Quản trị viên (/admin)</span>
           </button>
         )}
+      </section>
+
+      {/* Demo Tier Switcher for RBAC Voucher testing */}
+      <section className="demo-tier-switcher-card">
+        <div className="demo-tier-header">
+          <div className="demo-tier-icon-box">
+            <Crown size={20} className="crown-icon" />
+          </div>
+          <div className="demo-tier-text-block">
+            <strong className="demo-tier-title">Mô phỏng Hạng Hội viên (Phân quyền Voucher)</strong>
+            <span className="demo-tier-desc">
+              Chuyển nhanh thứ hạng để kiểm tra việc mở khóa hoặc từ chối mã khuyến mãi VIP/Gold
+            </span>
+          </div>
+        </div>
+
+        <div className="demo-tier-btn-group">
+          <button
+            type="button"
+            className={`demo-tier-btn ${(!user?.membership_tier || user?.membership_tier === "standard") ? "active tier-standard" : ""}`}
+            onClick={() => handleSwitchTier("standard")}
+          >
+            <span className="tier-rank-pill">Hạng 1</span>
+            <span className="tier-btn-label">🥉 Tiêu Chuẩn</span>
+            <small className="tier-btn-sub">Mã phổ thông (All)</small>
+          </button>
+
+          <button
+            type="button"
+            className={`demo-tier-btn ${user?.membership_tier === "gold" ? "active tier-gold" : ""}`}
+            onClick={() => handleSwitchTier("gold")}
+          >
+            <span className="tier-rank-pill">Hạng 2</span>
+            <span className="tier-btn-label">🥇 Hạng Vàng</span>
+            <small className="tier-btn-sub">Mã Gold & All</small>
+          </button>
+
+          <button
+            type="button"
+            className={`demo-tier-btn ${user?.membership_tier === "platinum" ? "active tier-platinum" : ""}`}
+            onClick={() => handleSwitchTier("platinum")}
+          >
+            <span className="tier-rank-pill">Hạng 3 VIP</span>
+            <span className="tier-btn-label">👑 Kim Cương VIP</span>
+            <small className="tier-btn-sub">Mở toàn bộ mã VIP</small>
+          </button>
+        </div>
       </section>
 
       {/* Quick Theme Switcher Card */}

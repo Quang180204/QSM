@@ -14,6 +14,8 @@ import {
   findNearestAvailableDriver,
   generateTripCode,
   haversineDistanceKm,
+  isTierEligible,
+  TIER_NAMES,
 } from "../services/businessService.js";
 import { emitTripStatusUpdate } from "../websocket/socketGateway.js";
 
@@ -78,12 +80,14 @@ export const tripController = {
       dest_coords,
       vehicle_type,
       voucher_code,
+      user_tier,
     } = req.body as {
       distance_km?: number;
       pickup_coords?: [number, number];
       dest_coords?: [number, number];
       vehicle_type?: string;
       voucher_code?: string;
+      user_tier?: "standard" | "gold" | "platinum";
     };
 
     const computedDistance =
@@ -94,11 +98,11 @@ export const tripController = {
           : 11.5;
 
     const vType = normalizeVehicleType(vehicle_type);
-    const quote = calculateFare(computedDistance, vType, voucher_code);
+    const quote = calculateFare(computedDistance, vType, voucher_code, user_tier);
 
     const allTiers = (["bike", "car", "luxury"] as VehicleType[]).map((tier) => ({
       vehicle_type: tier,
-      ...calculateFare(computedDistance, tier, voucher_code),
+      ...calculateFare(computedDistance, tier, voucher_code, user_tier),
     }));
 
     res.json({
@@ -161,6 +165,24 @@ export const tripController = {
       }
     }
 
+    const userObj = db.data.users.find((u) => u.id === userId);
+    const userTier = userObj?.membership_tier || req.user?.membership_tier || "standard";
+
+    // Kiểm tra phân quyền thứ hạng nếu có nhập voucher
+    if (voucher_code) {
+      const vMatch = db.data.vouchers?.find(
+        (v) => v.code === voucher_code.trim().toUpperCase() && v.is_active,
+      );
+      if (vMatch && !isTierEligible(userTier, vMatch.target_tier)) {
+        const reqName = TIER_NAMES[vMatch.target_tier || "all"] || vMatch.target_tier;
+        const curName = TIER_NAMES[userTier] || userTier;
+        res.status(403).json({
+          message: `Mã ưu đãi "${vMatch.code}" yêu cầu thứ hạng ${reqName}. Thứ hạng của bạn là "${curName}".`,
+        });
+        return;
+      }
+    }
+
     const safePickupCoords: [number, number] = pickup_coords || [105.9445, 20.9905];
     const safeDestCoords: [number, number] = dest_coords || [105.8685, 20.9962];
     const vType = normalizeVehicleType(vehicle_type);
@@ -169,7 +191,7 @@ export const tripController = {
         ? distance_km
         : haversineDistanceKm(safePickupCoords, safeDestCoords);
 
-    const fareCalc = calculateFare(dist, vType, voucher_code);
+    const fareCalc = calculateFare(dist, vType, voucher_code, userTier);
     const assignedDriver = findNearestAvailableDriver(db.data.drivers, safePickupCoords);
 
     if (assignedDriver) {
@@ -456,9 +478,11 @@ export const tripController = {
   },
 
   applyVoucher(req: Request, res: Response): void {
-    const { code, fare_amount } = req.body as {
+    const { code, fare_amount, fare, user_tier } = req.body as {
       code?: string;
       fare_amount?: number;
+      fare?: number;
+      user_tier?: string;
     };
     if (!code?.trim()) {
       res.status(400).json({ message: "Vui lòng nhập mã ưu đãi." });
@@ -477,7 +501,22 @@ export const tripController = {
       return;
     }
 
-    const currentFare = Number(fare_amount) || 50000;
+    // 1. Kiểm tra phân quyền thứ hạng hội viên (Membership Tier Validation)
+    const requiredTier = vMatch.target_tier || "all";
+    const userTier = (user_tier || "standard").toLowerCase();
+
+    if (!isTierEligible(userTier, requiredTier)) {
+      const requiredName = TIER_NAMES[requiredTier] || requiredTier;
+      const currentName = TIER_NAMES[userTier] || userTier;
+      res.status(403).json({
+        valid: false,
+        message: `Mã "${cleanCode}" là đặc quyền dành riêng cho ${requiredName}. Thứ hạng hiện tại của bạn là "${currentName}". Vui lòng nâng hạng hội viên để áp dụng ưu đãi này!`,
+      });
+      return;
+    }
+
+    // 2. Kiểm tra giá trị đơn hàng tối thiểu
+    const currentFare = Number(fare_amount ?? fare) || 50000;
     if (vMatch.min_order_val && currentFare < vMatch.min_order_val) {
       res.status(400).json({
         valid: false,
@@ -495,6 +534,7 @@ export const tripController = {
       valid: true,
       code: vMatch.code,
       title: vMatch.title,
+      target_tier: vMatch.target_tier || "all",
       discount_amount: Math.min(discount, Math.max(0, currentFare - 15000)),
       min_order_val: vMatch.min_order_val || 0,
       message: `Đã áp dụng mã "${vMatch.code}": -${discount.toLocaleString("vi-VN")}đ!`,
