@@ -127,16 +127,16 @@ export default function Account() {
         )}
       </section>
 
-      {/* Demo Tier Switcher for RBAC Voucher testing */}
+      {/* Membership Tier & Voucher Privilege Selector */}
       <section className="demo-tier-switcher-card">
         <div className="demo-tier-header">
           <div className="demo-tier-icon-box">
             <Crown size={20} className="crown-icon" />
           </div>
           <div className="demo-tier-text-block">
-            <strong className="demo-tier-title">Mô phỏng Hạng Hội viên (Phân quyền Voucher)</strong>
+            <strong className="demo-tier-title">Hạng Thẻ Hội Viên & Đặc Quyền Voucher</strong>
             <span className="demo-tier-desc">
-              Chuyển nhanh thứ hạng để kiểm tra việc mở khóa hoặc từ chối mã khuyến mãi VIP/Gold
+              Nâng cấp hoặc chuyển đổi hạng thẻ QSM để mở khóa đặc quyền ưu đãi Gold & Kim Cương VIP
             </span>
           </div>
         </div>
