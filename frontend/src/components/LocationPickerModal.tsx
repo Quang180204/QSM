@@ -18,6 +18,7 @@ import {
   type Route,
   computeMultiStopRoute,
 } from "../data/catalog";
+import { geocodeSearch, reverseGeocodeCoords } from "../services/geocodeService";
 import Modal from "./Modal";
 
 interface LocationPickerModalProps {
@@ -97,27 +98,33 @@ export default function LocationPickerModal({
     onClose();
   };
 
-  const handleCustomInputSubmit = (e: React.FormEvent) => {
+  const handleCustomInputSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const query = search.trim();
     if (!query) return;
 
-    // Tìm xem có địa điểm nào khớp không, nếu không tạo một Place tùy chỉnh
+    // 1. Kiểm tra danh mục mẫu trước
     const matched = locationDirectory.find(
       (p) => p.name.toLowerCase() === query.toLowerCase(),
     );
 
-    const customPlace: Place = matched || {
+    if (matched) {
+      handleChoosePlace(matched);
+      return;
+    }
+
+    // 2. Tìm kiếm tọa độ thực tế qua OpenStreetMap Nominatim
+    onNotify?.(`Đang tìm kiếm tọa độ thực cho "${query}"...`);
+    const geocoded = await geocodeSearch(query);
+
+    const targetPlace: Place = geocoded || {
       name: query,
       address: `${query}, Hà Nội`,
-      coords: [
-        105.82 + (Math.random() * 0.08 - 0.04),
-        21.02 + (Math.random() * 0.08 - 0.04),
-      ],
+      coords: [105.8542, 21.0285], // Mặc định trung tâm Hà Nội (Hồ Hoàn Kiếm), không random!
       category: "Điểm trung tâm",
     };
 
-    handleChoosePlace(customPlace);
+    handleChoosePlace(targetPlace);
   };
 
   const handleSwapRoute = () => {
@@ -140,23 +147,22 @@ export default function LocationPickerModal({
     }
     setLocatingGps(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         setLocatingGps(false);
-        const userCoords: [number, number] = [
-          Number(pos.coords.longitude.toFixed(5)),
-          Number(pos.coords.latitude.toFixed(5)),
-        ];
-        const gpsPlace: Place = {
-          name: "Vị trí GPS của bạn",
-          address: `Tọa độ: ${userCoords[1]}, ${userCoords[0]}`,
-          coords: userCoords,
-          category: "Điểm trung tâm",
-        };
+        const userLng = Number(pos.coords.longitude.toFixed(5));
+        const userLat = Number(pos.coords.latitude.toFixed(5));
+
+        // Lấy tên đường & địa chỉ thực tế từ tọa độ GPS của người dùng
+        const gpsPlace = await reverseGeocodeCoords(
+          userLng,
+          userLat,
+          "Vị trí GPS hiện tại của bạn",
+        );
         handleChoosePlace(gpsPlace);
       },
       () => {
         setLocatingGps(false);
-        onNotify?.("Không thể lấy GPS tự động, vui lòng chọn từ danh sách.");
+        onNotify?.("Không thể lấy GPS tự động, vui lòng chọn từ danh sách hoặc bản đồ.");
       },
       { enableHighAccuracy: true, timeout: 6000 },
     );

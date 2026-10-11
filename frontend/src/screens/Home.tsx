@@ -31,6 +31,7 @@ import {
 import VehicleShowcase3D from "../components/VehicleShowcase3D";
 import QsmLogo from "../components/QsmLogo";
 import LocationPickerModal from "../components/LocationPickerModal";
+import { geocodeSearch, reverseGeocodeCoords } from "../services/geocodeService";
 
 export default function Home() {
   const { ride, history, dispatch, notify } = useRide();
@@ -56,21 +57,32 @@ export default function Home() {
     .replace(".", ",");
   const ecoProgressPct = Math.min(100, completedTrips.length * 20);
 
-  const handleSelectQuickDestination = (placeName: string) => {
+  const handleSelectQuickDestination = async (placeName: string) => {
     setDestination(placeName);
+
+    // 1. Kiểm tra danh mục mẫu hoặc tuyến phổ biến
     const matchedDest =
       locationDirectory.find((p) =>
         p.name.toLowerCase().includes(placeName.toLowerCase()),
       ) ||
       popularRoutes.find((r) =>
         r.destination.name.toLowerCase().includes(placeName.toLowerCase()),
-      )?.destination || {
+      )?.destination;
+
+    let targetDest: Place;
+    if (matchedDest) {
+      targetDest = matchedDest;
+    } else {
+      notify(`Đang tìm kiếm tọa độ thực tế cho "${placeName}"...`);
+      const geocoded = await geocodeSearch(placeName);
+      targetDest = geocoded || {
         name: placeName,
         address: `${placeName}, Hà Nội`,
         coords: [105.8542, 21.0285] as [number, number],
       };
+    }
 
-    const nextRoute = computeRouteFromPlaces(currentRoute.pickup, matchedDest);
+    const nextRoute = computeRouteFromPlaces(currentRoute.pickup, targetDest);
 
     dispatch({ type: "RESET" });
     dispatch({ type: "TRANSITION", status: "COLLECTING_INFO" });
@@ -84,24 +96,24 @@ export default function Home() {
       setPickerMode("pickup");
       return;
     }
-    notify("Đang lấy tọa độ GPS điểm đón của bạn...");
+    notify("Đang lấy vị trí GPS hiện tại của bạn...");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords: [number, number] = [
-          Number(pos.coords.longitude.toFixed(5)),
-          Number(pos.coords.latitude.toFixed(5)),
-        ];
-        const gpsPlace: Place = {
-          name: "Vị trí GPS hiện tại",
-          address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
-          coords,
-        };
+      async (pos) => {
+        const userLng = Number(pos.coords.longitude.toFixed(5));
+        const userLat = Number(pos.coords.latitude.toFixed(5));
+
+        const gpsPlace = await reverseGeocodeCoords(
+          userLng,
+          userLat,
+          "Vị trí GPS hiện tại của bạn",
+        );
+
         const updated = computeRouteFromPlaces(
           gpsPlace,
           currentRoute.destination,
         );
         dispatch({ type: "SET_ROUTE", route: updated });
-        notify("Đã cập nhật điểm đón theo GPS hiện tại!");
+        notify(`Đã cập nhật điểm đón: ${gpsPlace.name}`);
       },
       () => {
         setPickerMode("pickup");

@@ -63,6 +63,7 @@ import RouteMap from "../components/RouteMap";
 import { RouteDetails } from "../components/RouteDetails";
 import Modal from "../components/Modal";
 import LocationPickerModal from "../components/LocationPickerModal";
+import { reverseGeocodeCoords } from "../services/geocodeService";
 import { tripApiService, type DriverMessageItem } from "../services/tripService";
 
 const tripStepTitles = {
@@ -467,23 +468,23 @@ export default function Trip() {
     }
     notify("Đang định vị GPS điểm đón của bạn...");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords: [number, number] = [
-          Number(pos.coords.longitude.toFixed(5)),
-          Number(pos.coords.latitude.toFixed(5)),
-        ];
-        const gpsPlace: Place = {
-          name: "Vị trí GPS hiện tại",
-          address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
-          coords,
-        };
+      async (pos) => {
+        const userLng = Number(pos.coords.longitude.toFixed(5));
+        const userLat = Number(pos.coords.latitude.toFixed(5));
+
+        const gpsPlace = await reverseGeocodeCoords(
+          userLng,
+          userLat,
+          "Vị trí GPS hiện tại của bạn",
+        );
+
         const nextRoute = computeMultiStopRoute(
           gpsPlace,
           selectedRoute.stops,
           selectedRoute.destination,
         );
         handleUpdateRoute(nextRoute);
-        notify("Đã cập nhật điểm đón theo vị trí GPS hiện tại!");
+        notify(`Đã cập nhật điểm đón: ${gpsPlace.name}`);
       },
       () => {
         setPickerMode("pickup");
@@ -584,17 +585,17 @@ export default function Trip() {
           }
           progress={progress}
           interactivePick={!active && !complete}
-          onGpsLocate={(coords, label) => {
+          onGpsLocate={async (coords) => {
             if (!active && !complete) {
-              const gpsPlace: Place = {
-                name: label,
-                address: `Tọa độ GPS: ${coords[1]}, ${coords[0]}`,
-                coords,
-              };
+              const gpsPlace = await reverseGeocodeCoords(
+                coords[0],
+                coords[1],
+                "Vị trí GPS của bạn",
+              );
               handleUpdateRoute(
                 computeRouteFromPlaces(gpsPlace, selectedRoute.destination),
               );
-              notify("Đã cập nhật điểm đón theo vị trí GPS thiết bị của bạn!");
+              notify(`Đã cập nhật điểm đón: ${gpsPlace.name}`);
             }
           }}
           onMapSelectPlace={(target, place) => {
