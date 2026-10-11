@@ -28,10 +28,10 @@ export function createDefaultSeedData(): DatabaseStore {
       },
       {
         id: "usr-customer-01",
-        username: "quang",
-        name: "Nguyễn Khắc Quang",
+        username: "ha",
+        name: "Lê Xuân Hạ",
         phone: "0988180204",
-        email: "quang@qsm.vn",
+        email: "ha@qsm.vn",
         password_hash: userHash,
         role: "user",
         membership_tier: "platinum",

@@ -16,7 +16,7 @@ if (isMigrateOnly) {
   const store = db.resetWithSeed();
   console.log("✅ [QSM DB Seed] Khởi tạo dữ liệu mẫu thành công!");
   console.log(`   - Tài khoản Admin mặc định: username = "admin" | password = "admin"`);
-  console.log(`   - Tài khoản Khách hàng mẫu: SĐT "0988180204" (hoặc email "quang@qsm.vn") | password = "123456"`);
+  console.log(`   - Tài khoản Khách hàng mẫu: SĐT "0988180204" (hoặc email "ha@qsm.vn") | password = "123456"`);
   console.log(`   - Tổng số người dùng: ${store.users.length}`);
   console.log(`   - Đội xe QSM: ${store.vehicles.length} phương tiện (${store.drivers.length} tài xế)`);
   console.log(`   - Lịch sử & chuyến xe mẫu: ${store.trips.length} chuyến`);

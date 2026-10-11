@@ -29,10 +29,10 @@ const SIGNED_OUT_FLAG = "qsm_explicit_signed_out_2026";
 
 const DEFAULT_CUSTOMER: AuthUser = {
   id: "usr-customer-01",
-  username: "quang",
-  name: "Nguyễn Khắc Quang",
+  username: "ha",
+  name: "Lê Xuân Hạ",
   phone: "0988180204",
-  email: "quang@qsm.vn",
+  email: "ha@qsm.vn",
   role: "user",
   membership_tier: "platinum",
   is_active: true,
@@ -108,7 +108,7 @@ export const authService = {
         return res;
       }
       if (
-        (clean === "0988180204" || clean === "quang@qsm.vn" || clean === "quang") &&
+        (clean === "0988180204" || clean === "ha@qsm.vn" || clean === "ha") &&
         password === "123456"
       ) {
         const res: AuthResponse = {

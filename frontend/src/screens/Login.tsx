@@ -116,7 +116,7 @@ export default function Login() {
               <input
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="VD: 0988180204, quang@qsm.vn hoặc admin"
+                placeholder="VD: 0988180204, ha@qsm.vn hoặc admin"
                 autoComplete="username"
                 required
               />

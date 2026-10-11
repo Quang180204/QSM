@@ -41,9 +41,9 @@ export default function Account() {
   const nav = useNavigate();
 
   const [section, setSection] = useState("");
-  const [name, setName] = useState(user?.name || "Nguyễn Khắc Quang");
+  const [name, setName] = useState(user?.name || "Lê Xuân Hạ");
   const [phone, setPhone] = useState(user?.phone || "0988180204");
-  const [email, setEmail] = useState(user?.email || "quang@qsm.vn");
+  const [email, setEmail] = useState(user?.email || "ha@qsm.vn");
   const [newPassword, setNewPassword] = useState("");
   const [notifications, setNotifications] = useState(true);
 
