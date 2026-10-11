@@ -210,10 +210,10 @@ async function resolveCoordsToPlace(
   };
 }
 
-const DARK_TILE_URL =
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const LIGHT_TILE_URL =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+// OSM Standard: free, no API key, very reliable worldwide
+const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const OSM_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
 
 export default function RealRouteMap({
   pickupCoords,
@@ -284,21 +284,35 @@ export default function RealRouteMap({
       center: initialCenter,
       zoom: 13,
       zoomControl: false,
-      attributionControl: false,
+      attributionControl: true,
       fadeAnimation: true,
       zoomAnimation: true,
     });
     mapRef.current = map;
 
-    const tileLayer = L.tileLayer(
-      isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL,
-      {
-        maxZoom: 19,
-        subdomains: "abcd",
-        keepBuffer: 4,
-      },
-    ).addTo(map);
+    // Position attribution bottom-right (default), minimal style
+    map.attributionControl.setPrefix("");
+
+    const tileLayer = L.tileLayer(OSM_TILE_URL, {
+      maxZoom: 19,
+      subdomains: "abc",
+      attribution: OSM_ATTRIBUTION,
+      crossOrigin: true,
+      keepBuffer: 4,
+    }).addTo(map);
     tileLayerRef.current = tileLayer;
+
+    // Apply dark mode filter immediately so tiles look correct from the start
+    setTimeout(() => {
+      const tilePaneEl = map.getPanes().tilePane as HTMLElement | undefined;
+      if (tilePaneEl) {
+        tilePaneEl.style.filter = isDarkMode
+          ? "invert(1) hue-rotate(200deg) brightness(0.85) contrast(1.1) saturate(0.9)"
+          : "none";
+      }
+    }, 0);
+
+
 
     const routeGroup = L.layerGroup().addTo(map);
     routeLayerGroupRef.current = routeGroup;
@@ -352,10 +366,17 @@ export default function RealRouteMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Đổi giao diện bản đồ Sáng / Tối mượt mà không cần xóa bản đồ
+  // 2. Áp dụng CSS filter lên tile pane để đổi giao diện Sáng/Tối không cần đổi URL
   useEffect(() => {
-    if (!tileLayerRef.current) return;
-    tileLayerRef.current.setUrl(isDarkMode ? DARK_TILE_URL : LIGHT_TILE_URL);
+    const map = mapRef.current;
+    if (!map) return;
+    // Leaflet renders tiles in .leaflet-tile-pane
+    const tilePaneEl = map.getPanes().tilePane as HTMLElement | undefined;
+    if (tilePaneEl) {
+      tilePaneEl.style.filter = isDarkMode
+        ? "invert(1) hue-rotate(200deg) brightness(0.85) contrast(1.1) saturate(0.9)"
+        : "none";
+    }
   }, [isDarkMode]);
 
   // 3. Cập nhật lộ trình, điểm đón/đến và các điểm dừng trên LayerGroup
