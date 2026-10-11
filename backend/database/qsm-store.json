@@ -15,10 +15,10 @@
     },
     {
       "id": "usr-customer-01",
-      "username": "quang",
-      "name": "Nguyễn Khắc Quang",
+      "username": "ha",
+      "name": "Lê Xuân Hạ",
       "phone": "0988180204",
-      "email": "quang@qsm.vn",
+      "email": "ha@qsm.vn",
       "password_hash": "$2b$10$ZRh01ArZHtbpCcO/xNqBT.bmHxZcONSEnqEy7iLPciZxRPd3TCsLq",
       "role": "user",
       "membership_tier": "gold",
@@ -82,7 +82,7 @@
       "license_plate": "29A-886.92",
       "type": "car",
       "battery_percentage": 94,
-      "status": "ready"
+      "status": "on_trip"
     },
     {
       "id": "veh-bike-01",
@@ -140,7 +140,7 @@
       "total_trips": 0,
       "current_lat": 20.9905,
       "current_lng": 105.9445,
-      "status": "available"
+      "status": "busy"
     },
     {
       "id": "drv-02",
@@ -198,8 +198,45 @@
       "status": "available"
     }
   ],
-  "trips": [],
-  "messages": [],
+  "trips": [
+    {
+      "id": "trp-f42242aa",
+      "trip_code": "QSM-324583",
+      "user_id": "usr-customer-01",
+      "driver_id": "drv-01",
+      "vehicle_type": "car",
+      "pickup_address": "VinUni",
+      "pickup_coords": [
+        105.9445,
+        20.9905
+      ],
+      "dest_address": "Times City",
+      "dest_coords": [
+        105.8685,
+        20.9962
+      ],
+      "stops": [],
+      "scheduled_at": null,
+      "distance_km": 5.2,
+      "duration_mins": 12,
+      "fare_amount": 109000,
+      "discount_amount": 0,
+      "final_amount": 109000,
+      "payment_method": "qsm_wallet",
+      "status": "PICKING_UP",
+      "created_at": "2026-10-11T17:15:39.785Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-8a79ef3e",
+      "trip_id": "trp-f42242aa",
+      "sender_role": "driver",
+      "sender_name": "Nguyễn Minh Nam",
+      "content": "Chào bạn, mình là tài xế QSM (Nguyễn Minh Nam). Mình đã nhận chuyến QSM-324583 và đang di chuyển tới điểm đón nhé!",
+      "created_at": "2026-10-11T17:15:39.786Z"
+    }
+  ],
   "vouchers": [
     {
       "code": "QSM2026",
